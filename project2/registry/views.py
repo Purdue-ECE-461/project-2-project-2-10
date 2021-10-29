@@ -31,7 +31,22 @@ def packages(request):
         # as of right now. 
 
         if request.method == "GET":
-            pass
+            batchSize = 2
+
+            index = request.GET.get('index')
+            if index == None:
+                index = 0
+            else:
+                index = int(index)
+
+            packages = []
+            for package in Package.objects.all()[index:index + batchSize]:
+                packages.append(package.to_dict())
+            
+            return HttpResponse(json.dumps({
+                "packages": packages,
+                "nextIndex": index + batchSize
+            }), status=200)
 
     except:
         print(" [ERROR]", sys.exc_info())
@@ -47,7 +62,7 @@ def package(request, name):
             package = Package.objects.get(name=name)
             file    = get_file(package.filePath)
 
-            return HttpResponse(file, content_type='text/plain', status=200)
+            return HttpResponse(file, status=200)
     except:
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)

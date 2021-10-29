@@ -14,7 +14,7 @@ def save_file(fileName, inMemoryFile):
     return filePath
 
 # THIS FUNCTION PROVIDES FUNCTIONALITY THAT WILL ONLY BE RUN IN DEVELOPMENT ENVIRONMENT. 
-# Returns a file object for the given filePath. 
+# Returns a file object for the given filePath. s
 
 def get_file(filePath):
     return open(filePath, "rb")
