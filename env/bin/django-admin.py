@@ -1,4 +1,4 @@
-#!/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/env/bin/python3
+#!/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/env/bin/python3
 # When the django-admin.py deprecation ends, remove this script.
 import warnings
 
