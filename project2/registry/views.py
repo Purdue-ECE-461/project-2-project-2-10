@@ -27,8 +27,10 @@ def packages(request):
             )
             return HttpResponse(status=201)
 
-        # Endpoint for getting a paginated list of packages. No functionality is provided for this endpoint
-        # as of right now. 
+        # Endpoint for getting a paginated list of packages. Returns a list of packages (number of packages
+        # determined by batchSize) and an integer that's used to determine the next list of packages. This 
+        # integer is sent by the client on their next call to indicate that the client wants the next batch
+        # of packages. 
 
         if request.method == "GET":
             batchSize = 2
@@ -55,8 +57,7 @@ def packages(request):
 @csrf_exempt
 def package(request, name):
     try:
-        # Given a package's name, returns that package. WE ARE USING .txt FILES FOR DEVELOPMENT PURPOSES,
-        # THE "content_type" SHOULD CHANGE FOR ZIPPED FILES.
+        # Given a package's name, returns that package. Only returns the zipped file. 
 
         if request.method == "GET":
             package = Package.objects.get(name=name)
