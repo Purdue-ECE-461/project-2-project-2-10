@@ -1,0 +1,19 @@
+# Code taken from youtube video: https://www.youtube.com/watch?v=mFFXuXjVgkU&ab_channel=DevOpsJourney
+
+name: super-linter
+
+on: push
+
+jobs:
+  super_lint:
+    name: Lint code base
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout code
+        uses: actions/checkout@v2
+      
+      - name: run super-linter
+        uses: github/super-linter@v3
+        env:
+          DEFAULT_BRANCH: main
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
