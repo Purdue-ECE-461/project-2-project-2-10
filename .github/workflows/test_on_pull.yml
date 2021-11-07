@@ -10,6 +10,6 @@ jobs:
           python-version: '3.8'
   install dependencies:
     steps:
-      - run |
+      - run: |
         ./run install
   #any tests we write go here
