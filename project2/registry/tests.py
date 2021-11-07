@@ -11,9 +11,11 @@ class PackageTest(TestCase):
     def setUp(self):
         self.client = Client()
 
+    # Tests to see if a zipped package is uploaded successfully and that the correct meta data
+    # is stored. 
     def test_upload_package(self):
         packageName = "UNIT_TEST"
-        packagePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
+        packagePath = "../zipped_folders/cloudinary_npm-master.zip"
         file        = open(packagePath, "rb")
 
         response = self.client.post(
@@ -31,10 +33,12 @@ class PackageTest(TestCase):
             self.assertEqual(response.status_code, 201)
             self.assertEqual(fileContent, fileContent)
             self.assertEqual(package.name, packageName)
+            self.assertEqual(package.githubUrl, "https://github.com/cloudinary/cloudinary_npm")
         
+    # Test to see if a package is able to be downloaded from the server. 
     def test_get_package(self):
         packageName = "NAME"
-        packagePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/project2/temp_files/cloudinary_npm-master.zip"
+        packagePath = "../project2/temp_files/cloudinary_npm-master.zip"
         Package.objects.create(
             name     = packageName,
             filePath = packagePath
@@ -46,10 +50,13 @@ class PackageTest(TestCase):
         with open(packagePath, "rb") as file:
             self.assertEqual(file.read(), response.content)
 
+    # Tests the pagination endpoint. Asks for a list of packages from the server, checks to see
+    # if only two packages are returned at a time. Asks for a list of packages twice to see if 
+    # a different list of packages are returned each time. 
     def test_get_paginated_list(self):
         package1 = Package.objects.create(
             name     = "browserify",
-            filePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/browserify-master.zip"
+            filePath = "../zipped_folders/browserify-master.zip"
         )
         package2 = Package.objects.create(
             name     = "cloudinary",
@@ -57,15 +64,15 @@ class PackageTest(TestCase):
         )
         package3 = Package.objects.create(
             name     = "express",
-            filePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/express-master.zip"
+            filePath = "../zipped_folders/express-master.zip"
         )
         package4 = Package.objects.create(
             name     = "lodash",
-            filePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/lodash-master.zip"
+            filePath = "../zipped_folders/lodash-master.zip"
         )
         package5 = Package.objects.create(
             name     = "nodist",
-            filePath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/nodist-master.zip"
+            filePath = "../zipped_folders/nodist-master.zip"
         )
 
         response1 = self.client.get(reverse("packages"))
@@ -85,9 +92,43 @@ class PackageTest(TestCase):
         self.assertEqual(content2["packages"][0]["name"], package3.name)
         self.assertEqual(content2["packages"][1]["name"], package4.name)
 
+    # Tests to see if a package is only saved if it has high enough subscores. The Express 
+    # package should have high enough sub scores, so it should be saved. Nodist should not
+    # have high enough sub scores, so it should not be saved. 
+    def test_ingestion(self):
+        url = reverse("ingestion")
+
+        goodFile = open("../zipped_folders/express-master.zip", "rb")
+        badFile  = open("../zipped_folders/nodist-master.zip", "rb")
+        
+        responseGood = self.client.post(
+            url, 
+            data = {
+                'name': "express",
+                'zipped_package': goodFile
+            }
+        )
+        responseBad = self.client.post(
+            url, 
+            data = {
+                'name': "nodist",
+                'zipped_package': badFile,
+            }
+        )
+
+        responseBodyGood = json.loads(responseGood.content.decode("utf-8"))
+        responseBodyBad  = json.loads(responseBad.content.decode("utf-8"))
+
+        self.assertEqual(responseBodyGood["isFileSaved"], True)
+        self.assertEqual(responseBodyBad["isFileSaved"], False)
+
+        self.assertEqual(Package.objects.filter(name="express").count(), 1)
+        self.assertEqual(Package.objects.filter(name="nodist").count(), 0)
+
+
 class FunctionsTest(TestCase):
     def test_get_github_url_from_zipped_package(self):
-        packageDirectory = '/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/'
+        packageDirectory = '../zipped_folders/'
         
         cloudinaryUrl = get_github_url_from_zipped_package(packageDirectory + "cloudinary_npm-master.zip")
         browserifyUrl = get_github_url_from_zipped_package(packageDirectory + "browserify-master.zip")

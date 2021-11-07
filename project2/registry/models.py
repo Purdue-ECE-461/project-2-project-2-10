@@ -11,6 +11,7 @@ class BaseModel():
         return returnDict
 
 class Package(models.Model, BaseModel):
-    name     = models.TextField()
-    filePath = models.TextField()
-    isSecret = models.BooleanField(default=False)
+    name      = models.TextField()
+    filePath  = models.TextField()
+    isSecret  = models.BooleanField(default=False)
+    githubUrl = models.TextField(default="") 

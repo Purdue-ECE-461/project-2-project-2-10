@@ -2,16 +2,27 @@ import os
 import zipfile
 import re
 
+from .project1 import main as project1
+from .models import *
+
 # THIS FUNCTION PROVIDES FUNCTIONALITY THAT WILL ONLY BE RUN IN DEVELOPMENT ENVIRONMENT. 
-# Saves the given file to a location given by fileName.
+# Saves the given file in stored and creates a new entity in the database that contains
+# the package's metadata. 
  
-def save_file(fileName, inMemoryFile):
-    directoryPath = "/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/project2/temp_files/"
-    filePath      = directoryPath + fileName
+def save_file(packageName, inMemoryFile):
+    directoryPath = "temp_files/"
+    filePath      = directoryPath + packageName
+    githubUrl     = get_github_url_from_zipped_package(inMemoryFile)
 
     with open(filePath, 'wb') as file:
         for chunk in inMemoryFile.chunks():
             file.write(chunk)
+
+        package = Package.objects.create(
+            name      = packageName,
+            filePath  = filePath,
+            githubUrl = githubUrl
+        )
 
     return filePath
 
@@ -33,8 +44,8 @@ def get_file(filePath):
 # the url is stored is not known in advance, so all of these possibilities have to be checked
 # for. 
 
-def get_github_url_from_zipped_package(packagePath):
-    with zipfile.ZipFile(packagePath) as zipped:
+def get_github_url_from_zipped_package(file):
+    with zipfile.ZipFile(file) as zipped:
         packageJsonName = ""
         for name in zipped.namelist():
             if "package.json" in name:
@@ -73,11 +84,14 @@ def get_github_url_from_zipped_package(packagePath):
 
     return githubUrl
 
-if __name__ == "__main__":
-    packageDirectory = '/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/'
+# Given a github url for a npm package, uses the functionality provided by project 1 to
+# calculate and return the package's overall score and a list of its subscores. 
 
-    get_github_url_from_zipped_package(packageDirectory + "cloudinary_npm-master.zip")
-    get_github_url_from_zipped_package(packageDirectory + "browserify-master.zip")
-    get_github_url_from_zipped_package(packageDirectory + "express-master.zip")
-    get_github_url_from_zipped_package(packageDirectory + "lodash-master.zip")
-    get_github_url_from_zipped_package(packageDirectory + "nodist-master.zip")
+def get_github_scores(githubUrl):
+    scoreDict = project1.gitOrNpm([githubUrl])
+    scores    = list(scoreDict.values())[0]
+    mainScore = scores[0]
+    subScores = scores[1:]
+
+    return mainScore, subScores
+

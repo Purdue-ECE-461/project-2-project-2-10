@@ -9,6 +9,7 @@ from django.core.files.storage import default_storage
 
 from .models import *
 from .functions import *
+from .project1 import main as project1
 
 @csrf_exempt
 def packages(request):
@@ -19,12 +20,8 @@ def packages(request):
         
         if request.method == "POST":
             inMemoryFile = request.FILES['zipped_package']
-            filePath     = save_file(inMemoryFile.name, inMemoryFile)
+            save_file(request.POST['name'], inMemoryFile)
 
-            package = Package.objects.create(
-                name     = request.POST['name'],
-                filePath = filePath
-            )
             return HttpResponse(status=201)
 
         # Endpoint for getting a paginated list of packages. Returns a list of packages (number of packages
@@ -68,4 +65,24 @@ def package(request, name):
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)
 
+@csrf_exempt
+def ingestion(request):
+    try:
+        inMemoryFile = request.FILES['zipped_package']
+        githubUrl    = get_github_url_from_zipped_package(inMemoryFile)
+        packageName  = request.POST['name']
+        _, subScores = get_github_scores(githubUrl)
 
+        areScoresGoodEnough = True
+        for subScore in subScores:
+            if subScore < .5:
+                areScoresGoodEnough = False 
+
+        if areScoresGoodEnough:
+            save_file(packageName, inMemoryFile)
+
+        return HttpResponse(json.dumps({"isFileSaved": areScoresGoodEnough}), status=200)
+
+    except:
+        print(" [ERROR]", sys.exc_info())
+        return HttpResponse(status=500)
