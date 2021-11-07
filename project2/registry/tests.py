@@ -5,6 +5,7 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.urls import reverse
 
 from .models import *
+from .functions import *
 
 class PackageTest(TestCase):
     def setUp(self):
@@ -83,3 +84,19 @@ class PackageTest(TestCase):
         self.assertEqual(len(content2), 2)
         self.assertEqual(content2["packages"][0]["name"], package3.name)
         self.assertEqual(content2["packages"][1]["name"], package4.name)
+
+class FunctionsTest(TestCase):
+    def test_get_github_url_from_zipped_package(self):
+        packageDirectory = '/Users/johnbensen/Documents/ECE/ECE461/PROJECT_2/project-2-project-2-10/zipped_folders/'
+        
+        cloudinaryUrl = get_github_url_from_zipped_package(packageDirectory + "cloudinary_npm-master.zip")
+        browserifyUrl = get_github_url_from_zipped_package(packageDirectory + "browserify-master.zip")
+        expressUrl    = get_github_url_from_zipped_package(packageDirectory + "express-master.zip")
+        lodashUrl     = get_github_url_from_zipped_package(packageDirectory + "lodash-master.zip")
+        nodistUrl     = get_github_url_from_zipped_package(packageDirectory + "nodist-master.zip")
+
+        self.assertEqual(cloudinaryUrl, "https://github.com/cloudinary/cloudinary_npm")
+        self.assertEqual(browserifyUrl, "http://github.com/browserify/browserify")
+        self.assertEqual(expressUrl,    "https://github.com/expressjs/express")
+        self.assertEqual(lodashUrl,     "")
+        self.assertEqual(nodistUrl,     "https://github.com/marcelklehr/nodist")
