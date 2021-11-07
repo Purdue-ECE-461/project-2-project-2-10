@@ -10,5 +10,5 @@ jobs:
         with:
           python-version: '3.8'
       - name: install dependencies
-        run: |
-          ./run install
+        run: ./run install
+          
