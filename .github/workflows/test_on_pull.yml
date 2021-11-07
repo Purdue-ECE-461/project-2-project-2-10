@@ -1,7 +1,7 @@
 name: test_on_pull
 on: [push]
 jobs:
-  check-bats-version:
+  setup-and-test:
     runs-on: ubuntu-latest
     steps:
       - name: set up runner
@@ -9,6 +9,6 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-    install dependencies:
-      - run: |
-        ./run install
+      - name: install dependencies
+        run: |
+          ./run install
