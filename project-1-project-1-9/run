@@ -1,7 +1,7 @@
 #! /usr/bin/bash
 if [ "$1" == "install" ]; then
-  python3 -m venv .
-  source bin/activate
+  python3 -m venv env/
+  source env/bin/activate
   pip3 install --upgrade pip
   python -m pip install requests
   pip freeze > requirements.txt
@@ -10,12 +10,12 @@ if [ "$1" == "install" ]; then
 fi
 
 if [ "$1" != "install" ]; then
-  python3 -m venv .
-  source bin/activate
+  python3 -m venv env/
+  source env/bin/activate
   pip3 install --upgrade pip
-  python -m pip install requests
+  #python -m pip install requests
   pip freeze > requirements.txt
-  pip install -r requirements.txt
+  #pip install -r requirements.txt
   python3 main.py "$1"
   deactivate
 fi
