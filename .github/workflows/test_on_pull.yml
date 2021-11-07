@@ -4,11 +4,11 @@ jobs:
   check-bats-version:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - name: set up runner
+        uses: actions/checkout@v2
+        uses: actions/setup-python@v2
         with:
           python-version: '3.8'
-  install dependencies:
-    steps:
+    install dependencies:
       - run: |
         ./run install
