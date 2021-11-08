@@ -68,20 +68,44 @@ def package(request, name):
 @csrf_exempt
 def ingestion(request):
     try:
-        inMemoryFile = request.FILES['zipped_package']
-        githubUrl    = get_github_url_from_zipped_package(inMemoryFile)
-        packageName  = request.POST['name']
-        _, subScores = get_github_scores(githubUrl)
+        # Provides an endpoint for "ingestion". Finds the score for the given package, and determines
+        # if its sub scores are high enough to be saved. If the sub scores are good enough, then save 
+        # the package. 
+        if request.method == "POST":
+            inMemoryFile = request.FILES['zipped_package']
+            githubUrl    = get_github_url_from_zipped_package(inMemoryFile)
+            packageName  = request.POST['name']
+            _, subScores = get_github_scores(githubUrl)
 
-        areScoresGoodEnough = True
-        for subScore in subScores:
-            if subScore < .5:
-                areScoresGoodEnough = False 
+            areScoresGoodEnough = True
+            for subScore in subScores:
+                if subScore < .5:
+                    areScoresGoodEnough = False 
 
-        if areScoresGoodEnough:
-            save_file(packageName, inMemoryFile)
+            if areScoresGoodEnough:
+                save_file(packageName, inMemoryFile)
 
-        return HttpResponse(json.dumps({"isFileSaved": areScoresGoodEnough}), status=200)
+            return HttpResponse(json.dumps({"isFileSaved": areScoresGoodEnough}), status=200)
+
+    except:
+        print(" [ERROR]", sys.exc_info())
+        return HttpResponse(status=500)
+
+@csrf_exempt
+def rating(request, name=None):
+    try:
+        # Given a package name, gets the score and sub scores for that package (using its github
+        # url). Returns a json containing the score and subscore. 
+        if request.method == "GET":
+            package = Package.objects.get(name=name)
+
+            score, subScores = get_github_scores(package.githubUrl)
+            scoreJson        = json.dumps({
+                "score":     score,
+                "subscores": subScores
+            })
+
+            return HttpResponse(scoreJson, status=200)
 
     except:
         print(" [ERROR]", sys.exc_info())

@@ -125,6 +125,31 @@ class PackageTest(TestCase):
         self.assertEqual(Package.objects.filter(name="express").count(), 1)
         self.assertEqual(Package.objects.filter(name="nodist").count(), 0)
 
+    # Tests the rating endpoint. When a "GET" request is made, the total score and individual
+    # sub scores should be returned. Each of these scores should be a float value between 0 
+    # and 1, and there should be 5 sub scores. 
+    def test_rating_endpoint(self):
+        package = Package.objects.create(
+            name      = "browserify",
+            filePath  = "../zipped_folders/browserify-master.zip",
+            githubUrl = "https://github.com/browserify/browserify"
+        )
+
+        response = self.client.get(
+            reverse("rating", kwargs={"name": package.name}), 
+        )
+        responseBody = json.loads(response.content.decode("utf-8"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertGreaterEqual(float(responseBody["score"]), 0)
+        self.assertLessEqual(float(responseBody["score"]), 1)
+
+        self.assertEqual(len(responseBody["subscores"]), 5)
+
+        for score in responseBody["subscores"]:
+            subScore = float(score)
+            self.assertGreaterEqual(subScore, 0)
+            self.assertLessEqual(subScore, 1)
 
 class FunctionsTest(TestCase):
     def test_get_github_url_from_zipped_package(self):
