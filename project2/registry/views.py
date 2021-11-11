@@ -71,6 +71,7 @@ def ingestion(request):
         # Provides an endpoint for "ingestion". Finds the score for the given package, and determines
         # if its sub scores are high enough to be saved. If the sub scores are good enough, then save 
         # the package. 
+
         if request.method == "POST":
             inMemoryFile = request.FILES['zipped_package']
             githubUrl    = get_github_url_from_zipped_package(inMemoryFile)
@@ -96,6 +97,7 @@ def rating(request, name=None):
     try:
         # Given a package name, gets the score and sub scores for that package (using its github
         # url). Returns a json containing the score and subscore. 
+
         if request.method == "GET":
             package = Package.objects.get(name=name)
 
@@ -110,3 +112,4 @@ def rating(request, name=None):
     except:
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)
+

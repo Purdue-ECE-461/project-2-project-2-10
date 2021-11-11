@@ -18,7 +18,7 @@ def save_file(packageName, inMemoryFile):
         for chunk in inMemoryFile.chunks():
             file.write(chunk)
 
-        package = Package.objects.create(
+        Package.objects.create(
             name      = packageName,
             filePath  = filePath,
             githubUrl = githubUrl
@@ -94,4 +94,6 @@ def get_github_scores(githubUrl):
     subScores = scores[1:]
 
     return mainScore, subScores
+
+# def
 
