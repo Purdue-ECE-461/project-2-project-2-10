@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 from django.core.files.storage import default_storage
+from django.http import QueryDict
 
 from .models import *
 from .functions import *
@@ -64,12 +65,12 @@ def packages(request):
         return HttpResponse(status=500)
 
 @csrf_exempt
-def package(request, name):
+def package(request, id=None):
     try:
         # Given a package's name, returns that package and it's metadata.
 
         if request.method == "GET":
-            package     = Package.objects.get(name=name)
+            package     = Package.objects.get(packageId=id)
             fileContent = get_file_content(package.filePath)
             returnData = {
                 "metadata": package.to_dict(),
@@ -81,18 +82,38 @@ def package(request, name):
             }          
             return HttpResponse(json.dumps(returnData), status=200)
 
+        # Updates a package's data (including it's file content) based on the given values. Only
+        # performs the update if the given id, name, and version match an existing package. 
+
+        if request.method == "PUT":
+            requestData = json.loads(request.body.decode("utf8"))
+            metadata    = requestData["metadata"]
+            data        = requestData["data"]
+
+            package = Package.objects.get(packageId=id)
+
+            if metadata["Name"] != package.name or metadata["Version"] != package.version:
+                return HttpResponse(status=400)
+
+            package.githubUrl = data["URL"]
+            package.jsProgram = data["JSProgram"]
+            package.filePath  = save_file(metadata["Name"], data["Content"])
+            package.save()
+
+            return HttpResponse(status=200)
+
     except:
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)
 
 @csrf_exempt
-def rating(request, name=None):
+def rating(request, id=None):
     try:
         # Given a package name, gets the score and sub scores for that package (using its github
         # url). Returns a json containing the score and subscore. 
 
         if request.method == "GET":
-            package      = Package.objects.get(name=name)
+            package      = Package.objects.get(packageId=id)
             subScoreDict = get_github_scores(package.githubUrl)
 
             return HttpResponse(json.dumps(subScoreDict), status=200)

@@ -1,4 +1,5 @@
 import json
+import base64
 
 from django.test import TestCase, Client
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -22,7 +23,7 @@ class PackageTest(TestCase):
         fakeContent    = "fake content data"
 
         packagePath  = "../zipped_folders/cloudinary_npm-master.zip"
-        # originalFile = open(packagePath, "rb")
+        originalFile = open(packagePath, "rb")
 
         response = self.client.post(
             reverse('packages'), 
@@ -33,7 +34,7 @@ class PackageTest(TestCase):
                     "ID": packageID
                 }),
                 "data": json.dumps({
-                    "Content": fakeContent,
+                    "Content": base64.b64encode(originalFile.read()).decode("utf-8"),
                     "URL": packageURL,
                     "JSProgram": jsProgram
                 })
@@ -65,7 +66,7 @@ class PackageTest(TestCase):
         )
 
         response = self.client.get(
-            reverse('package', kwargs={'name': packageName})
+            reverse('package', kwargs={'id': packageID})
         )
         responseContent = json.loads(response.content)
 
@@ -127,11 +128,12 @@ class PackageTest(TestCase):
         package = Package.objects.create(
             name      = "browserify",
             filePath  = "../zipped_folders/browserify-master.zip",
-            githubUrl = "https://github.com/browserify/browserify"
+            githubUrl = "https://github.com/browserify/browserify",
+            packageId = "UNIT_TEST_ID",
         )
 
         response = self.client.get(
-            reverse("rating", kwargs={"name": package.name}), 
+            reverse("rating", kwargs={"id": package.packageId}), 
         )
 
         responseBody = json.loads(response.content.decode("utf-8"))
@@ -143,18 +145,80 @@ class PackageTest(TestCase):
             self.assertGreaterEqual(subScore, 0)
             self.assertLessEqual(subScore, 1)
 
-class FunctionsTest(TestCase):
-    def test_get_github_url_from_zipped_package(self):
-        packageDirectory = '../zipped_folders/'
-        
-        cloudinaryUrl = get_github_url_from_zipped_package(packageDirectory + "cloudinary_npm-master.zip")
-        browserifyUrl = get_github_url_from_zipped_package(packageDirectory + "browserify-master.zip")
-        expressUrl    = get_github_url_from_zipped_package(packageDirectory + "express-master.zip")
-        lodashUrl     = get_github_url_from_zipped_package(packageDirectory + "lodash-master.zip")
-        nodistUrl     = get_github_url_from_zipped_package(packageDirectory + "nodist-master.zip")
+    # Tries to update a package's data. If the correct name, version, and id are given, then the package
+    # should be updated with the values found in "data".
+    def test_update_package(self):
+        originalFilePath = "../zipped_folders/browserify-master.zip"
 
-        self.assertEqual(cloudinaryUrl, "https://github.com/cloudinary/cloudinary_npm")
-        self.assertEqual(browserifyUrl, "http://github.com/browserify/browserify")
-        self.assertEqual(expressUrl,    "https://github.com/expressjs/express")
-        self.assertEqual(lodashUrl,     "")
-        self.assertEqual(nodistUrl,     "https://github.com/marcelklehr/nodist")
+        package = Package.objects.create(
+            name      = "browserify",
+            filePath  = originalFilePath,
+            githubUrl = "https://github.com/browserify/browserify",
+            packageId = "UNIT_TEST_ID",
+            jsProgram = "if (x == 2) return true;"
+        )
+
+        newUrl       = "github.com/path/to/fake/url"
+        newJsProgram = "if (x == 2) return false;"
+
+        response = self.client.put(
+            reverse('package', kwargs={"id": package.packageId}), 
+            data = json.dumps({
+                "metadata": {
+                    "Name": package.name,
+                    "Version": package.version,
+                    "ID": package.packageId
+                },
+                "data": {
+                    "Content":" base64.b64encode(originalFile.read()).decode('utf-8')",
+                    "URL": newUrl,
+                    "JSProgram": newJsProgram
+                }
+            })  
+        )
+
+        updatedPackage = Package.objects.first()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertNotEqual(updatedPackage.filePath, originalFilePath)
+        self.assertEqual(updatedPackage.githubUrl, newUrl)
+        self.assertEqual(updatedPackage.jsProgram, newJsProgram)
+
+    # Tries to update a package, but gives the wrong version. The package should not be updated,
+    # and all the values should remain the same. 
+    def test_update_package_with_wrong_version(self):
+        originalFilePath = "../zipped_folders/browserify-master.zip"
+
+        package = Package.objects.create(
+            name      = "browserify",
+            filePath  = originalFilePath,
+            githubUrl = "https://github.com/browserify/browserify",
+            packageId = "UNIT_TEST_ID",
+            jsProgram = "if (x == 2) return true;"
+        )
+
+        newUrl       = "github.com/path/to/fake/url"
+        newJsProgram = "if (x == 2) return false;"
+
+        response = self.client.put(
+            reverse('package', kwargs={"id": package.packageId}), 
+            data = json.dumps({
+                "metadata": {
+                    "Name": package.name,
+                    "Version": "wrong version",
+                    "ID": package.packageId
+                },
+                "data": {
+                    "Content":" base64.b64encode(originalFile.read()).decode('utf-8')",
+                    "URL": newUrl,
+                    "JSProgram": newJsProgram
+                }
+            })  
+        )
+
+        updatedPackage = Package.objects.first()
+
+        self.assertEqual(response.status_code, 400)
+        self.assertEqual(updatedPackage.filePath, originalFilePath)
+        self.assertEqual(updatedPackage.githubUrl, package.githubUrl)
+        self.assertEqual(updatedPackage.jsProgram, package.jsProgram)

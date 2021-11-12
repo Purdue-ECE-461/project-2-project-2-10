@@ -13,11 +13,17 @@ class BaseModel():
 class Package(models.Model, BaseModel):
     name      = models.TextField()
     packageId = models.TextField()
+    version   = models.TextField()
+
     filePath  = models.TextField()
     isSecret  = models.BooleanField(default=False)
     githubUrl = models.TextField(default="")
-    version   = models.TextField(default="")
     jsProgram = models.TextField(default="")
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["name", "packageId", "version"], name="uniquePackage")
+        ]
 
     def to_dict(self):
         return {
@@ -25,3 +31,5 @@ class Package(models.Model, BaseModel):
             "Version": self.version,
             "ID":      self.packageId
         }
+
+
