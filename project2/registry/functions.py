@@ -9,28 +9,22 @@ from .models import *
 # Saves the given file in stored and creates a new entity in the database that contains
 # the package's metadata. 
  
-def save_file(packageName, inMemoryFile):
+def save_file(packageName, zippedFileContent):
     directoryPath = "temp_files/"
     filePath      = directoryPath + packageName
-    githubUrl     = get_github_url_from_zipped_package(inMemoryFile)
 
-    with open(filePath, 'wb') as file:
-        for chunk in inMemoryFile.chunks():
-            file.write(chunk)
-
-        Package.objects.create(
-            name      = packageName,
-            filePath  = filePath,
-            githubUrl = githubUrl
-        )
+    with open(filePath, 'w') as file:
+        file.write(zippedFileContent)
 
     return filePath
 
 # THIS FUNCTION PROVIDES FUNCTIONALITY THAT WILL ONLY BE RUN IN DEVELOPMENT ENVIRONMENT. 
-# Returns a file object for the given filePath. s
+# Returns a file object for the given filePath. Zipped files are encoded in "Cp437", so 
+# it has to be decoded in "Cp437" in order to be added to the json object. 
 
-def get_file(filePath):
-    return open(filePath, "rb")
+def get_file_content(filePath):
+    with open(filePath, "rb") as file:
+        return file.read().decode("Cp437")
 
 # This function searches through a zipped packages "package.json" file to look for a github
 # url. This url can be stored in multiple ways, include:
@@ -93,7 +87,12 @@ def get_github_scores(githubUrl):
     mainScore = scores[0]
     subScores = scores[1:]
 
-    return mainScore, subScores
+    subScoreNames = ["RampUp", "Correctness", "BusFactor", "ResponsiveMaintainer", "LicenseScore"]
+    subScoreDict  = {}
+    for i in range(len(subScoreNames)):
+        subScoreDict[subScoreNames[i]] = subScores[i]
+
+    return subScoreDict
 
 # def
 

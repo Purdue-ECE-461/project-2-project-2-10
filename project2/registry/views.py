@@ -19,8 +19,20 @@ def packages(request):
         # and saves the package's metadata to a SQL database. 
         
         if request.method == "POST":
-            inMemoryFile = request.FILES['zipped_package']
-            save_file(request.POST['name'], inMemoryFile)
+            metadata = json.loads(request.POST["metadata"])
+            data     = json.loads(request.POST["data"])
+
+            zippedFileContent = data['Content']
+            fileLocation      = save_file(metadata['Name'], zippedFileContent)
+
+            Package.objects.create(
+                name      = metadata["Name"],
+                packageId = metadata["ID"],
+                version   = metadata["Version"],
+                filePath  = fileLocation,
+                githubUrl = data["URL"],
+                jsProgram = data["JSProgram"]
+            )
 
             return HttpResponse(status=201)
 
@@ -32,19 +44,19 @@ def packages(request):
         if request.method == "GET":
             batchSize = 2
 
-            index = request.GET.get('index')
-            if index == None:
-                index = 0
+            offset = request.GET.get('offset')
+            if offset == None:
+                offset = 0
             else:
-                index = int(index)
+                offset = int(offset)
 
             packages = []
-            for package in Package.objects.all()[index:index + batchSize]:
+            for package in Package.objects.all()[offset:offset + batchSize]:
                 packages.append(package.to_dict())
             
             return HttpResponse(json.dumps({
                 "packages": packages,
-                "nextIndex": index + batchSize
+                "nextOffset": offset + batchSize
             }), status=200)
 
     except:
@@ -54,39 +66,20 @@ def packages(request):
 @csrf_exempt
 def package(request, name):
     try:
-        # Given a package's name, returns that package. Only returns the zipped file. 
+        # Given a package's name, returns that package and it's metadata.
 
         if request.method == "GET":
-            package = Package.objects.get(name=name)
-            file    = get_file(package.filePath)
-
-            return HttpResponse(file, status=200)
-    except:
-        print(" [ERROR]", sys.exc_info())
-        return HttpResponse(status=500)
-
-@csrf_exempt
-def ingestion(request):
-    try:
-        # Provides an endpoint for "ingestion". Finds the score for the given package, and determines
-        # if its sub scores are high enough to be saved. If the sub scores are good enough, then save 
-        # the package. 
-
-        if request.method == "POST":
-            inMemoryFile = request.FILES['zipped_package']
-            githubUrl    = get_github_url_from_zipped_package(inMemoryFile)
-            packageName  = request.POST['name']
-            _, subScores = get_github_scores(githubUrl)
-
-            areScoresGoodEnough = True
-            for subScore in subScores:
-                if subScore < .5:
-                    areScoresGoodEnough = False 
-
-            if areScoresGoodEnough:
-                save_file(packageName, inMemoryFile)
-
-            return HttpResponse(json.dumps({"isFileSaved": areScoresGoodEnough}), status=200)
+            package     = Package.objects.get(name=name)
+            fileContent = get_file_content(package.filePath)
+            returnData = {
+                "metadata": package.to_dict(),
+                "data": {
+                    "Content":   fileContent,
+                    "URL":       package.githubUrl,
+                    "JSProgram": package.jsProgram
+                }
+            }          
+            return HttpResponse(json.dumps(returnData), status=200)
 
     except:
         print(" [ERROR]", sys.exc_info())
@@ -99,15 +92,10 @@ def rating(request, name=None):
         # url). Returns a json containing the score and subscore. 
 
         if request.method == "GET":
-            package = Package.objects.get(name=name)
+            package      = Package.objects.get(name=name)
+            subScoreDict = get_github_scores(package.githubUrl)
 
-            score, subScores = get_github_scores(package.githubUrl)
-            scoreJson        = json.dumps({
-                "score":     score,
-                "subscores": subScores
-            })
-
-            return HttpResponse(scoreJson, status=200)
+            return HttpResponse(json.dumps(subScoreDict), status=200)
 
     except:
         print(" [ERROR]", sys.exc_info())

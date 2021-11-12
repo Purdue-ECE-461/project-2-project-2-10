@@ -12,7 +12,16 @@ class BaseModel():
 
 class Package(models.Model, BaseModel):
     name      = models.TextField()
+    packageId = models.TextField()
     filePath  = models.TextField()
     isSecret  = models.BooleanField(default=False)
     githubUrl = models.TextField(default="")
     version   = models.TextField(default="")
+    jsProgram = models.TextField(default="")
+
+    def to_dict(self):
+        return {
+            "Name":    self.name,
+            "Version": self.version,
+            "ID":      self.packageId
+        }
