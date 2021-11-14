@@ -7,5 +7,5 @@ import os
 
 GITHUB_TOKEN = "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"
 LOG_LEVEL = "0"
-LOG_FILE = "/Users/johnbensen/Documents/ECE/ECE461/project-2-project-2-10/log"
+LOG_FILE = "../log"
 
