@@ -18,7 +18,6 @@ jobs:
       run: |
         pip install -r requirements.txt
         python -m pip install --upgrade pip
-        pip install pylint
-    - name: Analysing the code with pylint
+    - name: Analysing the code with django-pylint
       run: |
-        pylint `ls -R|grep .py$|xargs`
+        pylint --load-plugins pylint_django --django-settings-module=project2.settings --disable=missing-module-docstring,missing-function-docstring,broad-except registry
