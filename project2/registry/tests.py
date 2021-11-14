@@ -20,10 +20,10 @@ class PackageTest(TestCase):
         packageID      = "UNIT_TEST_ID"
         packageURL     = "github.com/fake/url/path"
         jsProgram      = "if (process.argv.length === 7) {\nconsole.log('Success')\nprocess.exit(0)\n} else {\nconsole.log('Failed')\nprocess.exit(1)\n}\n"
-        fakeContent    = "fake content data"
 
-        packagePath  = "../zipped_folders/cloudinary_npm-master.zip"
-        originalFile = open(packagePath, "rb")
+        packagePath         = "../zipped_folders/cloudinary_npm-master.zip"
+        originalFile        = open(packagePath, "rb")
+        originalFileContent = originalFile.read().decode("Cp437")
 
         response = self.client.post(
             reverse('packages'), 
@@ -34,7 +34,7 @@ class PackageTest(TestCase):
                     "ID": packageID
                 }),
                 "data": json.dumps({
-                    "Content": base64.b64encode(originalFile.read()).decode("utf-8"),
+                    "Content": originalFileContent,
                     "URL": packageURL,
                     "JSProgram": jsProgram
                 })
@@ -42,8 +42,8 @@ class PackageTest(TestCase):
         )
 
         package = Package.objects.all()[0]
-        with open(package.filePath, "r") as savedFile:
-            self.assertEqual(savedFile.read(), fakeContent)
+        with open(package.filePath, "rb") as savedFile:
+            self.assertEqual(savedFile.read().decode("Cp437"), originalFileContent)
 
         self.assertEqual(response.status_code, 201)
 
@@ -84,24 +84,29 @@ class PackageTest(TestCase):
     # a different list of packages are returned each time. 
     def test_get_paginated_list(self):
         package1 = Package.objects.create(
-            name     = "browserify",
-            filePath = "../zipped_folders/browserify-master.zip"
+            name      = "browserify",
+            packageId = "1",
+            filePath  = "../zipped_folders/browserify-master.zip"
         )
         package2 = Package.objects.create(
-            name     = "cloudinary",
-            filePath = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
+            name      = "cloudinary",
+            packageId = "2",
+            filePath  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
         )
         package3 = Package.objects.create(
-            name     = "express",
-            filePath = "../zipped_folders/express-master.zip"
+            name      = "express",
+            packageId = "3",
+            filePath  = "../zipped_folders/express-master.zip"
         )
         package4 = Package.objects.create(
-            name     = "lodash",
-            filePath = "../zipped_folders/lodash-master.zip"
+            name      = "lodash",
+            packageId = "4",
+            filePath  = "../zipped_folders/lodash-master.zip"
         )
         package5 = Package.objects.create(
-            name     = "nodist",
-            filePath = "../zipped_folders/nodist-master.zip"
+            name      = "nodist",
+            packageId = "5",
+            filePath  = "../zipped_folders/nodist-master.zip"
         )
 
         response1 = self.client.get(reverse("packages"))
@@ -222,3 +227,37 @@ class PackageTest(TestCase):
         self.assertEqual(updatedPackage.filePath, originalFilePath)
         self.assertEqual(updatedPackage.githubUrl, package.githubUrl)
         self.assertEqual(updatedPackage.jsProgram, package.jsProgram)
+
+    # Should delete package
+    def test_delete_package(self):
+        package = Package.objects.create(
+            name      = "browserify",
+            filePath  = "../zipped_folders/browserify-master.zip",
+            githubUrl = "https://github.com/browserify/browserify",
+            packageId = "UNIT_TEST_ID",
+            jsProgram = "if (x == 2) return true;"
+        )
+
+        response = self.client.delete(reverse('package', kwargs={"id": package.packageId}))
+
+        self.assertEqual(response.status_code, 200)
+
+        self.assertEqual(Package.objects.count(), 0)
+
+    def test_delete_package_by_name(self):
+        package1 = Package.objects.create(
+            name      = "browserify",
+            version   = "1.0.0",
+            packageId = "1", 
+            filePath  = "../zipped_folders/browserify-master.zip"
+        )
+        package2 = Package.objects.create(
+            name      = "browserify",
+            version   = "1.0.1",
+            packageId = "2",
+            filePath  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
+        )
+
+        self.client.delete(reverse("byName", kwargs={"name": package1.name}))
+
+        self.assertEqual(Package.objects.count(), 0)

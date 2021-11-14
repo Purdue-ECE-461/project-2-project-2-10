@@ -12,7 +12,7 @@ class BaseModel():
 
 class Package(models.Model, BaseModel):
     name      = models.TextField()
-    packageId = models.TextField()
+    packageId = models.TextField(unique=True)
     version   = models.TextField()
 
     filePath  = models.TextField()
@@ -22,7 +22,7 @@ class Package(models.Model, BaseModel):
 
     class Meta:
         constraints = [
-            models.UniqueConstraint(fields=["name", "packageId", "version"], name="uniquePackage")
+            models.UniqueConstraint(fields=["name", "version"], name="uniquePackage")
         ]
 
     def to_dict(self):

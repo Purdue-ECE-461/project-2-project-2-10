@@ -13,8 +13,8 @@ def save_file(packageName, zippedFileContent):
     directoryPath = "temp_files/"
     filePath      = directoryPath + packageName
 
-    with open(filePath, 'w') as file:
-        file.write(zippedFileContent)
+    with open(filePath, 'wb') as file:
+        file.write(zippedFileContent.encode("Cp437"))
 
     return filePath
 
@@ -41,6 +41,4 @@ def get_github_scores(githubUrl):
         subScoreDict[subScoreNames[i]] = subScores[i]
 
     return subScoreDict
-
-# def
 

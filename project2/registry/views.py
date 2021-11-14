@@ -26,6 +26,11 @@ def packages(request):
             zippedFileContent = data['Content']
             fileLocation      = save_file(metadata['Name'], zippedFileContent)
 
+            packagesWithNameVersion = Package.objects.filter(name=metadata["Name"], version=metadata["Version"])
+            packagesWithId          = Package.objects.filter(packageId=metadata["ID"])
+            if packagesWithNameVersion.exists() or packagesWithId.exists():
+                return HttpResponse(status=403)
+
             Package.objects.create(
                 name      = metadata["Name"],
                 packageId = metadata["ID"],
@@ -102,6 +107,15 @@ def package(request, id=None):
 
             return HttpResponse(status=200)
 
+        # Deletes a package from the database. TODO: delete corresponding package file from file
+        # storage. 
+
+        if request.method == "DELETE":
+            package = Package.objects.get(packageId=id)
+            package.delete()
+
+            return HttpResponse(status=200)
+
     except:
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)
@@ -121,4 +135,19 @@ def rating(request, id=None):
     except:
         print(" [ERROR]", sys.exc_info())
         return HttpResponse(status=500)
+
+@csrf_exempt
+def byName(request, name=None):
+    try:
+        if request.method == "DELETE":
+            packages = Package.objects.filter(name=name)
+            for package in packages:
+                package.delete()
+
+            return HttpResponse(status=200)
+
+    except:
+        print(" [ERROR]", sys.exc_info())
+        return HttpResponse(status=500)
+
 
