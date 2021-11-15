@@ -258,6 +258,6 @@ class PackageTest(TestCase):
             filePath  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
         )
 
-        self.client.delete(reverse("byName", kwargs={"name": package1.name}))
+        self.client.delete(reverse("by_name", kwargs={"name": package1.name}))
 
         self.assertEqual(Package.objects.count(), 0)
