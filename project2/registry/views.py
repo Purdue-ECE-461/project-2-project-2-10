@@ -1,6 +1,5 @@
 import json
 import sys
-import os
 
 from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
@@ -27,19 +26,19 @@ def packages(request):
                 version = metadata["Version"]
             )
             packages_with_same_id = Package.objects.filter(
-                packageId = metadata["ID"]
+                package_id = metadata["ID"]
             )
 
             if packages_with_same_name_and_version.exists() or packages_with_same_id.exists():
                 return HttpResponse(status=403)
 
             Package.objects.create(
-                name      = metadata["Name"],
-                packageId = metadata["ID"],
-                version   = metadata["Version"],
-                filePath  = file_location,
-                githubUrl = data["URL"],
-                jsProgram = data["JSProgram"]
+                name       = metadata["Name"],
+                package_id = metadata["ID"],
+                version    = metadata["Version"],
+                file_path  = file_location,
+                github_url = data["URL"],
+                js_program = data["JSProgram"]
             )
 
             return HttpResponse(status=201)
@@ -74,19 +73,19 @@ def packages(request):
         return HttpResponse(status=500)
 
 @csrf_exempt
-def package(request, id=None):
+def package(request, package_id=None):
     try:
         # Given a package's name, returns that package and it's metadata.
 
         if request.method == "GET":
-            requested_package = Package.objects.get(packageId=id)
-            file_content      = get_file_content(requested_package.filePath)
+            requested_package = Package.objects.get(package_id=package_id)
+            file_content      = get_file_content(requested_package.file_path)
             return_data       = {
                 "metadata": requested_package.to_dict(),
                 "data": {
                     "Content":   file_content,
-                    "URL":       requested_package.githubUrl,
-                    "JSProgram": requested_package.jsProgram
+                    "URL":       requested_package.github_url,
+                    "JSProgram": requested_package.js_program
                 }
             }
             return JsonResponse(return_data, status=200)
@@ -100,14 +99,17 @@ def package(request, id=None):
             metadata     = request_data["metadata"]
             data         = request_data["data"]
 
-            updated_package = Package.objects.get(packageId=id)
+            updated_package = Package.objects.get(package_id=package_id)
 
-            if metadata["Name"] != updated_package.name or metadata["Version"] != updated_package.version:
+            do_names_match    = metadata["Name"] == updated_package.name
+            do_versions_match = metadata["Version"] == updated_package.version
+
+            if not do_names_match or not do_versions_match:
                 return HttpResponse(status=400)
 
-            updated_package.githubUrl = data["URL"]
-            updated_package.jsProgram = data["JSProgram"]
-            updated_package.filePath  = save_file(metadata["Name"], data["Content"])
+            updated_package.github_url = data["URL"]
+            updated_package.js_program = data["JSProgram"]
+            updated_package.file_path  = save_file(metadata["Name"], data["Content"])
             updated_package.save()
 
             return HttpResponse(status=200)
@@ -116,7 +118,7 @@ def package(request, id=None):
         # file storage.
 
         if request.method == "DELETE":
-            updated_package = Package.objects.get(packageId=id)
+            updated_package = Package.objects.get(package_id=package_id)
             updated_package.delete()
 
             return HttpResponse(status=200)
@@ -128,14 +130,14 @@ def package(request, id=None):
         return HttpResponse(status=500)
 
 @csrf_exempt
-def rating(request, id=None):
+def rating(request, package_id=None):
     try:
         # Given a package name, gets the score and sub scores for that package (using its
         # github url). Returns a json containing the score and subscore.
 
         if request.method == "GET":
-            rated_package  = Package.objects.get(packageId=id)
-            sub_score_dict = get_github_scores(rated_package.githubUrl)
+            rated_package  = Package.objects.get(package_id=package_id)
+            sub_score_dict = get_github_scores(rated_package.github_url)
 
             return JsonResponse(sub_score_dict, status=200)
 

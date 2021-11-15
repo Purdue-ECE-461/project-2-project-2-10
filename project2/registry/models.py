@@ -1,24 +1,14 @@
 from django.db import models
 
-class BaseModel():
-    def to_dict(self):
-        returnDict = {}
+class Package(models.Model):
+    name       = models.TextField()
+    package_id = models.TextField(unique=True)
+    version    = models.TextField()
 
-        for key in self.__dict__.keys():
-            if key not in ['_state', 'id']:
-                returnDict[key] = self.__dict__[key]
-
-        return returnDict
-
-class Package(models.Model, BaseModel):
-    name      = models.TextField()
-    packageId = models.TextField(unique=True)
-    version   = models.TextField()
-
-    filePath  = models.TextField()
-    isSecret  = models.BooleanField(default=False)
-    githubUrl = models.TextField(default="")
-    jsProgram = models.TextField(default="")
+    file_path  = models.TextField()
+    is_secret  = models.BooleanField(default=False)
+    github_url = models.TextField(default="")
+    js_program = models.TextField(default="")
 
     class Meta:
         constraints = [
@@ -29,7 +19,5 @@ class Package(models.Model, BaseModel):
         return {
             "Name":    self.name,
             "Version": self.version,
-            "ID":      self.packageId
+            "ID":      self.package_id
         }
-
-
