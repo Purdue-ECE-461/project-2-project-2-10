@@ -6,7 +6,7 @@ from .project1 import main as project1
 # the package's metadata.
 
 def save_file(package_name, zipped_file_content):
-    storage_client = storage.Client()   
+    storage_client = storage.Client()
     bucket         = storage_client.bucket("bucket-461")
     blob           = bucket.blob(package_name)
 
@@ -19,7 +19,7 @@ def save_file(package_name, zipped_file_content):
 # it has to be decoded in "Cp437" in order to be added to the json object.
 
 def get_file_content(package_name):
-    storage_client = storage.Client()   
+    storage_client = storage.Client()
     bucket         = storage_client.bucket("bucket-461")
     blob           = bucket.blob(package_name)
 
