@@ -5,7 +5,7 @@ from .connectgithub import *
 from .test_suite import *
 from .readEnvironment import *
 
-logFile_ptr = open(LOG_FILE, "w")
+# logFile_ptr = open(LOG_FILE, "w")
 
 #function to install dependencies
 def installPackages():

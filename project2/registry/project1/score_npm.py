@@ -2,7 +2,7 @@ from .connect_npm import *
 from .readEnvironment import *
 import re
 
-logFile_ptr = open(LOG_FILE, "w")
+# logFile_ptr = open(LOG_FILE, "w")
 
 class npm_score:
     def __init__(self, npm):
@@ -12,10 +12,10 @@ class npm_score:
         
         if LOG_LEVEL == "1":
             message = f"Scoring the API accessed by npm"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = f"Scoring the API accessed by npm, using urllib.parse package to break down the \nurl and base64 package to convert the package.json file info into a string"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
 
         #Score correctness:
         self.cor_score = self.score_correctness()
@@ -85,10 +85,10 @@ class npm_score:
         score = 1 - ((major + minor + patch) / (denominator+1))
         if LOG_LEVEL == "1":
             message = "Running scoreCorrectness"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = "Running scoreCorrectness and calculating correctness score from scoreCorrectness function using \nthe current version \nof the API and comparing how many versions have been made for the same release "
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         return self.scale_scores("cor", score)
 
     def score_rampup(self):
@@ -96,10 +96,10 @@ class npm_score:
         score = self.npm.dev_dep / (self.npm.dependencies+1)
         if LOG_LEVEL == "1":
             message = "Running scoreRampup"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = "Running scoreRampup and getting RampUp score from scoreRampup function using devDependencies and \ndependencies of the API "
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         return self.scale_scores("ram", score)
 
     def score_busfactor(self):
@@ -107,10 +107,10 @@ class npm_score:
         score = self.npm.maintainers / (self.npm.contributors+1)
         if LOG_LEVEL == "1":
             message = "Running scoreBusFactor"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = "Running scoreBusFactor and getting BusFactor score from scoreBusFactor function \nby running get_assignees and get_contributors for the API "
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         return self.scale_scores("bus", score)
 
     def score_responsiveness(self):
@@ -118,10 +118,10 @@ class npm_score:
         score = self.npm.releases / (self.npm.commits+1)
         if LOG_LEVEL == "1":
             message = "Running scoreResponsiveness"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = "Running scoreResponsiveness and getting RampUp score from scoreResponsiveness function \nusing get_releases and get_commits for the API "
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         return self.scale_scores("res", score)
 
     def score_liccompat(self):
@@ -144,10 +144,10 @@ class npm_score:
 
         if LOG_LEVEL == "1":
             message = "Getting License compatibility from scoreLicCompat function"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         if LOG_LEVEL == "2":
             message = "Comparing a set of pre-chosen licenses to compare with the the license type of current API"
-            logFile_ptr.write(message)
+            # logFile_ptr.write(message)
         return self.scale_scores("lic", score)
 
     def score_cumulative(self):

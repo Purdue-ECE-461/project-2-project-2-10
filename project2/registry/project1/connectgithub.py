@@ -7,8 +7,8 @@ from .readEnvironment import *
 
 # GITHUB_TOKEN = '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'
 headers = {'Authorization': 'token ' + GITHUB_TOKEN}
-logFile_ptr = open(LOG_FILE, "w")
-# logFile_ptr = open("logFile.txt", "w")
+# logFile_ptr = open(LOG_FILE, "w")
+# # logFile_ptr = open("logFile.txt", "w")
 # LOG_LEVEL = "1"
 
 
@@ -30,7 +30,7 @@ def getUrl(url):
 
     if LOG_LEVEL == "1" or LOG_LEVEL == "2":
         message = "Running getUrl\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return base_url
 
@@ -43,7 +43,7 @@ def get_contributors(baseURL):
 
     if LOG_LEVEL == "1" or LOG_LEVEL == "2":
         message = "Running get_contributors\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return len(data)
 
@@ -56,7 +56,7 @@ def get_assignees(baseURL):
 
     if LOG_LEVEL == "1" or LOG_LEVEL == "2":
         message = "Running get_assignees\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return len(data)
 
@@ -69,7 +69,7 @@ def get_releases(baseURL):
 
     if LOG_LEVEL == "1" or LOG_LEVEL == "2":
         message = "Running get_releases\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return len(data)
 
@@ -81,7 +81,7 @@ def get_commits(baseURL):
     data = response.json()
     if LOG_LEVEL == "1" or LOG_LEVEL == "2":
         message = "Running get_commits\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return len(data)
 
@@ -89,30 +89,30 @@ def get_commits(baseURL):
 def get_version(packageJSON):
     if LOG_LEVEL == "1":
         message = "Getting API Version\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Getting API Version using package.json file\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     return packageJSON['version']
 
 
 def get_dependencies(packageJSON):
     if LOG_LEVEL == "1":
         message = "Getting Dependencies\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Getting Dependencies using package.json file\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     return len(packageJSON['dependencies'])
 
 
 def get_devDependencies(packageJSON):
     if LOG_LEVEL == "1":
         message = "Getting devDependencies\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Getting devDependencies using package.json file\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     return len(packageJSON['devDependencies'])
 
 
@@ -124,10 +124,10 @@ def get_license(packageJSON):
         output = {}
     if LOG_LEVEL == "1":
         message = "Getting Licenses\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Getting Licenses using package.json file\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     return output
 
 
@@ -145,10 +145,10 @@ def getJSONPackage(baseURL):
 
     if LOG_LEVEL == "1":
         message = "Running getJSONPackage\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Running getJSONPackage and getting package.json file from the github repo for the API\n "
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return output
 
@@ -163,11 +163,11 @@ def scoreBusFactor(baseURL):
 
     if LOG_LEVEL == "1":
         message = "Running scoreBusFactor\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Running scoreBusFactor and getting BusFactor score from scoreBusFactor function " \
                   "by running get_assignees and get_contributors for the API \n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return score
 
@@ -182,11 +182,11 @@ def scoreResponsiveness(baseURL):
 
     if LOG_LEVEL == "1":
         message = "Running scoreResponsiveness\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Running scoreResponsiveness and getting RampUp score from scoreResponsiveness function " \
                   "using get_releases and get_commits for the API\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return score
 
@@ -226,12 +226,12 @@ def scoreCorrectness(packageJSON):
 
     if LOG_LEVEL == "1":
         message = "Running scoreCorrectness\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Running scoreCorrectness and calculating correctness score from scoreCorrectness function using " \
                   "the current version " \
                   "of the API and comparing how many versions have been made for the same release\n "
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return score
 
@@ -248,11 +248,11 @@ def scoreRampup(packageJSON):
 
     if LOG_LEVEL == "1":
         message = "Running scoreRampup\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Running scoreRampup and getting RampUp score from scoreRampup function using devDependencies and " \
                   "dependencies of the API \n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return score
 
@@ -278,10 +278,10 @@ def scoreLicCompat(packageJSON):
 
     if LOG_LEVEL == "1":
         message = "Getting License compatibility from scoreLicCompat function\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = "Comparing a set of pre-chosen licenses to compare with the the license type of current API\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
 
     return score
 
@@ -322,11 +322,11 @@ def scoreGithub(url):
     totalScore = cumulativeScore(baseurl, packagejson)
     if LOG_LEVEL == "1":
         message = f"Scoring the API accessed by the Github URl:{url}\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     if LOG_LEVEL == "2":
         message = f"Scoring the API accessed by the Github URl:{url}, using urllib.parse package to break down the " \
                   f"url and base64 package to convert the package.json file info into a string\n"
-        logFile_ptr.write(message)
+        # logFile_ptr.write(message)
     return totalScore
 
 
@@ -334,10 +334,10 @@ def scoreGithub(url):
 #     requestCount = 8
 #     # scores = scoreGithub("https://github.com/lodash/lodash")
 #     # scores = scoreGithub("https://github.com/nullivex/nodist")
-#     logFile_ptr = open("LOG_FILE.txt", "w")
+#     # logFile_ptr = open("LOG_FILE.txt", "w")
 #     # scores = scoreGithub("https://github.com/cloudinary/cloudinary_npm")
 #     scores = scoreGithub("https://github.com/jquery/jquery")
-#     logFile_ptr.close()
+#     # logFile_ptr.close()
 #     # print(LOG_LEVEL)
 #     # print(LOG_FILE)
 #     # print(type(GITHUB_TOKEN))
