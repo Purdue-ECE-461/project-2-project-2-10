@@ -21,4 +21,4 @@ jobs:
     - name: Analysing the code with django-pylint
       run: |
         cd project2/
-        pylint --load-plugins pylint_django --django-settings-module=project2.settings --disable=missing-module-docstring,missing-function-docstring,broad-except registry
+        pylint --load-plugins pylint_django --django-settings-module=project2.settings --disable=missing-module-docstring,missing-function-docstring,broad-except,missing-class-docstring registry
