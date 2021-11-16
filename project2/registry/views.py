@@ -20,7 +20,7 @@ def reset(request):
 
     except (Exception,):
         print(" [ERROR]", sys.exc_info())
-        return HttpResponse(status=500)   
+        return HttpResponse(status=500)
 
 @csrf_exempt
 def packages(request):
