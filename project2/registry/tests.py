@@ -10,90 +10,6 @@ class PackageTest(TestCase):
     def setUp(self):
         self.client = Client()
 
-    # Tests to see if a zipped package is uploaded successfully and that the correct meta data
-    # is stored.
-    def test_upload_package(self):
-        package_name    = "UNIT_TEST"
-        package_version = "1.0.0"
-        package_id      = "UNIT_TEST_ID"
-        package_url     = "github.com/fake/url/path"
-        js_program      = """
-            if (process.argv.length === 7) {\n
-                console.log('Success')\n
-                process.exit(0)\n
-            } else {\n
-                console.log('Failed')\n
-                process.exit(1)\n
-            }\n
-        """
-
-        package_path = "../zipped_folders/cloudinary_npm-master.zip"
-        with open(package_path, "rb") as original_file:
-            original_file_content = original_file.read().decode("Cp437")
-
-        response = self.client.post(
-            reverse('packages'),
-            data = {
-                "metadata": json.dumps({
-                    "Name": package_name,
-                    "Version": package_version,
-                    "ID": package_id
-                }),
-                "data": json.dumps({
-                    "Content": original_file_content,
-                    "URL": package_url,
-                    "JSProgram": js_program
-                })
-            }
-        )
-
-        # package = Package.objects.all()[0]
-        # with open(package.file_path, "rb") as saved_file:
-        #     self.assertEqual(saved_file.read().decode("Cp437"), original_file_content)
-
-        self.assertEqual(response.status_code, 201)
-
-    # Test to see if a package is able to be downloaded from the server.
-    def test_get_package(self):
-        package_name     = "UNIT_TEST"
-        package_version  = "1.0.0"
-        package_id       = "UNIT_TEST_ID"
-        package_url      = "github.com/fake/url/path"
-        js_program       = """
-            if (process.argv.length === 7) {\n
-                console.log('Success')\n
-                process.exit(0)\n
-            } else {\n
-                console.log('Failed')\n
-                process.exit(1)\n
-            }\n
-        """
-
-        package_path = save_file("UNIT_TEST", "hello world")
-
-        Package.objects.create(
-            name       = package_name,
-            package_id = package_id,
-            version    = package_version,
-            github_url = package_url,
-            js_program = js_program,
-            file_path  = package_path
-        )
-
-        response = self.client.get(
-            reverse('package', kwargs={'package_id': package_id})
-        )
-        response_content = json.loads(response.content)
-
-        # with open(package_path, "rb") as file:
-        #     self.assertEqual(file.read(), response_content["data"]["Content"].encode("Cp437"))
-
-        self.assertEqual(response_content["data"]["URL"], package_url)
-        self.assertEqual(response_content["data"]["JSProgram"], js_program)
-        self.assertEqual(response_content["metadata"]["Name"], package_name)
-        self.assertEqual(response_content["metadata"]["Version"], package_version)
-        self.assertEqual(response_content["metadata"]["ID"], package_id)
-
     # Tests the pagination endpoint. Asks for a list of packages from the server, checks to see
     # if only two packages are returned at a time. Asks for a list of packages twice to see if
     # a different list of packages are returned each time.
@@ -164,45 +80,6 @@ class PackageTest(TestCase):
             sub_score = float(score)
             self.assertGreaterEqual(sub_score, 0)
             self.assertLessEqual(sub_score, 1)
-
-    # Tries to update a package's data. If the correct name, version, and id are given, then
-    # the package should be updated with the values found in "data".
-    def test_update_package(self):
-        original_file_path = "../zipped_folders/browserify-master.zip"
-
-        package = Package.objects.create(
-            name      = "browserify",
-            file_path  = original_file_path,
-            github_url = "https://github.com/browserify/browserify",
-            package_id = "UNIT_TEST_ID",
-            js_program = "if (x == 2) return true;"
-        )
-
-        new_url        = "github.com/path/to/fake/url"
-        new_js_program = "if (x == 2) return false;"
-
-        response = self.client.put(
-            reverse('package', kwargs={"package_id": package.package_id}),
-            data = json.dumps({
-                "metadata": {
-                    "Name": package.name,
-                    "Version": package.version,
-                    "ID": package.package_id
-                },
-                "data": {
-                    "Content":" base64.b64encode(originalFile.read()).decode('utf-8')",
-                    "URL": new_url,
-                    "JSProgram": new_js_program
-                }
-            })
-        )
-
-        updated_package = Package.objects.first()
-
-        self.assertEqual(response.status_code, 200)
-        self.assertNotEqual(updated_package.file_path, original_file_path)
-        self.assertEqual(updated_package.github_url, new_url)
-        self.assertEqual(updated_package.js_program, new_js_program)
 
     # Tries to update a package, but gives the wrong version. The package should not be updated,
     # and all the values should remain the same.
