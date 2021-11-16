@@ -27,4 +27,6 @@ jobs:
         pip install -r requirements.txt
     - name: Run Tests
       run: |
-        python project2/manage.py test
+        export GOOGLE_APPLICATION_CREDENTIALS="helical-history-332215-6addf60fe403.json"
+        cd project2/
+        python manage.py test
