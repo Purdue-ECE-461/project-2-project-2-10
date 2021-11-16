@@ -8,6 +8,21 @@ from .models import Package
 from .functions import save_file, get_file_content, get_github_scores
 
 @csrf_exempt
+def reset(request):
+    try:
+        if request.method == "DELETE":
+            for temp_pacakge in Package.objects.all():
+                temp_pacakge.delete()
+
+            return HttpResponse(status=200)
+
+        return HttpResponse(status=404)
+
+    except (Exception,):
+        print(" [ERROR]", sys.exc_info())
+        return HttpResponse(status=500)
+
+@csrf_exempt
 def packages(request):
     try:
         # Endpoint for uploading a new package. Recieves a request that contains a zipped package

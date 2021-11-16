@@ -276,3 +276,24 @@ class PackageTest(TestCase):
         self.client.delete(reverse("by_name", kwargs={"name": package1.name}))
 
         self.assertEqual(Package.objects.count(), 0)
+
+    def test_reset(self):
+        Package.objects.create(
+            name      = "browserify",
+            package_id = "1",
+            file_path  = "../zipped_folders/browserify-master.zip"
+        )
+        Package.objects.create(
+            name      = "cloudinary",
+            package_id = "2",
+            file_path  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
+        )
+        Package.objects.create(
+            name      = "express",
+            package_id = "3",
+            file_path  = "../zipped_folders/express-master.zip"
+        )
+
+        self.client.delete(reverse("reset"))
+
+        self.assertEqual(Package.objects.count(), 0)
