@@ -4,41 +4,67 @@ from django.test import TestCase, Client
 from django.urls import reverse
 
 from .models import Package
-from .functions import save_file
+from .functions import get_file_content, save_file
 
 class PackageTest(TestCase):
     def setUp(self):
-        self.client = Client()
+        self.client     = Client()
+        self.package_id = 0
+        self.file_path  = "../zipped_folders/temp.txt"
+        with open(self.file_path, "rb") as file:
+            self.content = file.read().decode("Cp437")
 
-    # Tests the pagination endpoint. Asks for a list of packages from the server, checks to see
-    # if only two packages are returned at a time. Asks for a list of packages twice to see if
-    # a different list of packages are returned each time.
-    def test_get_paginated_list(self):
-        package1 = Package.objects.create(
-            name      = "browserify",
-            package_id = "1",
-            file_path  = "../zipped_folders/browserify-master.zip"
+    def create_package(self, name, github_url="github.com/fake/repo", version="1.0.0"):
+        package = Package.objects.create(
+            name       = name,
+            package_id = str(self.package_id),
+            version    = version,
+            file_path  = name,
+            github_url = github_url
         )
-        package2 = Package.objects.create(
-            name      = "cloudinary",
-            package_id = "2",
-            file_path  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
+
+        self.package_id += 1
+
+        return package
+
+    def test_post_packages(self):
+        package_name    = "name"
+        package_version = "1.0.1"
+        package_id      = "1"
+        package_content = self.content
+        package_url     = "github"
+        package_js      = "js"
+
+        response = self.client.post(
+            reverse('packages'),
+            data = {
+                "metadata": json.dumps({
+                    "Name": package_name,
+                    "Version": package_version,
+                    "ID": package_id
+                }),
+                "data": json.dumps({
+                    "Content": package_content,
+                    "URL": package_url,
+                    "JSProgram": package_js
+                })
+            }
         )
-        package3 = Package.objects.create(
-            name      = "express",
-            package_id = "3",
-            file_path  = "../zipped_folders/express-master.zip"
-        )
-        package4 = Package.objects.create(
-            name      = "lodash",
-            package_id = "4",
-            file_path  = "../zipped_folders/lodash-master.zip"
-        )
-        _ = Package.objects.create(
-            name      = "nodist",
-            package_id = "5",
-            file_path  = "../zipped_folders/nodist-master.zip"
-        )
+
+        saved_package = Package.objects.first()
+        saved_content = get_file_content(saved_package.file_path)
+
+        self.assertEqual(response.status_code, 201)
+
+        self.assertEqual(saved_package.name, package_name)
+        self.assertEqual(saved_package.package_id, package_id)
+        self.assertEqual(saved_content, package_content)
+
+    def test_get_packages(self):
+        package1 = self.create_package("name1")
+        package2 = self.create_package("name2")
+        package3 = self.create_package("name3")
+        package4 = self.create_package("name4")
 
         response1 = self.client.get(reverse("packages"))
         content1  = json.loads(response1.content.decode("utf8"))
@@ -57,17 +83,29 @@ class PackageTest(TestCase):
         self.assertEqual(content2["packages"][0]["Name"], package3.name)
         self.assertEqual(content2["packages"][1]["Name"], package4.name)
 
-    # Tests the rating endpoint. When a "GET" request is made, the total score and individual
-    # sub scores should be returned. Each of these scores should be a float value between 0
-    # and 1, and there should be 5 sub scores.
-    def test_rating_endpoint(self):
-        package = Package.objects.create(
-            name      = "browserify",
-            file_path  = "../zipped_folders/browserify-master.zip",
-            github_url = "https://github.com/browserify/browserify",
-            package_id = "UNIT_TEST_ID",
-        )
+    def test_get_package(self):
+        package = self.create_package("name")
+        save_file(package.name, self.content)
 
+        response = self.client.get(
+            reverse("package", kwargs={'package_id': package.package_id}))
+        response_content = json.loads(response.content)
+
+        self.assertEqual(response_content["data"]["URL"],         package.github_url)
+        self.assertEqual(response_content["data"]["JSProgram"],   package.js_program)
+        self.assertEqual(response_content["metadata"]["Name"],    package.name)
+        self.assertEqual(response_content["metadata"]["Version"], package.version)
+        self.assertEqual(response_content["metadata"]["ID"],      package.package_id)
+
+    def test_delete_package(self):
+        package = self.create_package("name")
+
+        self.client.delete(reverse("package", kwargs={'package_id': package.package_id}))
+
+        self.assertEqual(Package.objects.count(), 0)
+
+    def test_get_rating(self):
+        package = self.create_package("name")
         response = self.client.get(
             reverse("rating", kwargs={"package_id": package.package_id}),
         )
@@ -81,95 +119,10 @@ class PackageTest(TestCase):
             self.assertGreaterEqual(sub_score, 0)
             self.assertLessEqual(sub_score, 1)
 
-    # Tries to update a package, but gives the wrong version. The package should not be updated,
-    # and all the values should remain the same.
-    def test_update_package_with_wrong_version(self):
-        original_file_path = "../zipped_folders/browserify-master.zip"
-
-        package = Package.objects.create(
-            name      = "browserify",
-            file_path  = original_file_path,
-            github_url = "https://github.com/browserify/browserify",
-            package_id = "UNIT_TEST_ID",
-            js_program = "if (x == 2) return true;"
-        )
-
-        new_url        = "github.com/path/to/fake/url"
-        new_js_program = "if (x == 2) return false;"
-
-        response = self.client.put(
-            reverse('package', kwargs={"package_id": package.package_id}),
-            data = json.dumps({
-                "metadata": {
-                    "Name": package.name,
-                    "Version": "wrong version",
-                    "ID": package.package_id
-                },
-                "data": {
-                    "Content":" base64.b64encode(originalFile.read()).decode('utf-8')",
-                    "URL": new_url,
-                    "JSProgram": new_js_program
-                }
-            })
-        )
-
-        updated_package = Package.objects.first()
-
-        self.assertEqual(response.status_code, 400)
-        self.assertEqual(updated_package.file_path, original_file_path)
-        self.assertEqual(updated_package.github_url, package.github_url)
-        self.assertEqual(updated_package.js_program, package.js_program)
-
-    # Should delete package
-    def test_delete_package(self):
-        package = Package.objects.create(
-            name      = "browserify",
-            file_path  = "../zipped_folders/browserify-master.zip",
-            github_url = "https://github.com/browserify/browserify",
-            package_id = "UNIT_TEST_ID",
-            js_program = "if (x == 2) return true;"
-        )
-
-        response = self.client.delete(reverse('package', kwargs={"package_id": package.package_id}))
-
-        self.assertEqual(response.status_code, 200)
-
-        self.assertEqual(Package.objects.count(), 0)
-
-    def test_delete_package_by_name(self):
-        package1 = Package.objects.create(
-            name       = "browserify",
-            version    = "1.0.0",
-            package_id = "1",
-            file_path  = "../zipped_folders/browserify-master.zip"
-        )
-        _ = Package.objects.create(
-            name       = "browserify",
-            version    = "1.0.1",
-            package_id = "2",
-            file_path  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
-        )
-
-        self.client.delete(reverse("by_name", kwargs={"name": package1.name}))
-
-        self.assertEqual(Package.objects.count(), 0)
-
     def test_reset(self):
-        Package.objects.create(
-            name      = "browserify",
-            package_id = "1",
-            file_path  = "../zipped_folders/browserify-master.zip"
-        )
-        Package.objects.create(
-            name      = "cloudinary",
-            package_id = "2",
-            file_path  = "project-2-project-2-10/zipped_folders/cloudinary_npm-master.zip"
-        )
-        Package.objects.create(
-            name      = "express",
-            package_id = "3",
-            file_path  = "../zipped_folders/express-master.zip"
-        )
+        self.create_package("name1")
+        self.create_package("name2")
+        self.create_package("name3")
 
         self.client.delete(reverse("reset"))
 
