@@ -11,8 +11,7 @@ class PackageTest(TestCase):
         self.client     = Client()
         self.package_id = 0
         self.file_path  = "../zipped_folders/temp.txt"
-        with open(self.file_path, "rb") as file:
-            self.content = file.read().decode("Cp437")
+        self.content    = "hello world"
 
     def create_package(self, name, github_url="github.com/fake/repo", version="1.0.0"):
         package = Package.objects.create(
