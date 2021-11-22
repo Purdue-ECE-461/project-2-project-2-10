@@ -1,4 +1,3 @@
-import logging
 import json
 from datetime import datetime
 
@@ -80,6 +79,7 @@ class PackageLogger:
 
     def __log_action(self, package, user, action):
         log_body = {
+            "User": str(user),
             "Date": str(datetime.today()),
             "PackageMetadata": json.dumps(
                 package.to_dict()
