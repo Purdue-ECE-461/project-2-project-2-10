@@ -5,7 +5,9 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 
 from .models import Package
-from .functions import save_file, get_file_content, get_github_scores
+from .functions import save_file, get_file_content, get_github_scores, PackageLogger
+
+package_logger = PackageLogger()
 
 @csrf_exempt
 def reset(request):
@@ -13,6 +15,7 @@ def reset(request):
         if request.method == "DELETE":
             for temp_pacakge in Package.objects.all():
                 temp_pacakge.delete()
+            package_logger.delete_logs()
 
             return HttpResponse(status=200)
 
@@ -47,7 +50,7 @@ def packages(request):
             if packages_with_same_name_and_version.exists() or packages_with_same_id.exists():
                 return HttpResponse(status=403)
 
-            Package.objects.create(
+            created_package = Package.objects.create(
                 name       = metadata["Name"],
                 package_id = metadata["ID"],
                 version    = metadata["Version"],
@@ -55,6 +58,8 @@ def packages(request):
                 github_url = data["URL"],
                 js_program = data["JSProgram"]
             )
+
+            package_logger.log_create(created_package, None)
 
             return HttpResponse(status=201)
 
@@ -103,6 +108,8 @@ def package(request, package_id=None):
                     "JSProgram": requested_package.js_program
                 }
             }
+            package_logger.log_download(requested_package, None)
+
             return JsonResponse(return_data, status=200)
 
         # Updates a package's data (including it's file content) based on the given values.
@@ -126,6 +133,8 @@ def package(request, package_id=None):
             updated_package.js_program = data["JSProgram"]
             updated_package.file_path  = save_file(metadata["Name"], data["Content"])
             updated_package.save()
+
+            package_logger.log_update(requested_package, None)
 
             return HttpResponse(status=200)
 
@@ -154,6 +163,8 @@ def rating(request, package_id=None):
             rated_package  = Package.objects.get(package_id=package_id)
             sub_score_dict = get_github_scores(rated_package.github_url)
 
+            package_logger.log_rate(rated_package, None)
+
             return JsonResponse(sub_score_dict, status=200)
 
         return HttpResponse(status=404)
@@ -165,6 +176,10 @@ def rating(request, package_id=None):
 @csrf_exempt
 def by_name(request, name=None):
     try:
+        if request.method == "GET":
+            package_history = package_logger.get_package_name_history(name)
+            return JsonResponse(package_history, safe=False)
+
         if request.method == "DELETE":
             package_list = Package.objects.filter(name=name)
             for temp_package in package_list:
