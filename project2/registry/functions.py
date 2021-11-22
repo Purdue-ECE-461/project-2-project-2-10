@@ -50,10 +50,7 @@ class PackageLogger:
         self.logging_client = gcloud_logging.Client()
         self.logging_client.setup_logging()
         self.logger = self.logging_client.logger(self.logger_name)
-
-    def delete_logs(self):
-        self.logger.delete()
-
+        
     def get_package_name_history(self, package_name):
         package_history = []
 
