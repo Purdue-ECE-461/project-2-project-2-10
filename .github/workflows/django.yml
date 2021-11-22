@@ -22,7 +22,8 @@ jobs:
         python -m pip install --upgrade pip
         pip install -r requirements.txt
     - name: Run Tests
+      env:
+        GOOGLE_APPLICATION_CREDENTIALS: ../helical-history-332215-6addf60fe403.json
       run: |
-        export GOOGLE_APPLICATION_CREDENTIALS="helical-history-332215-6addf60fe403.json"
         cd project2/
         python manage.py test
