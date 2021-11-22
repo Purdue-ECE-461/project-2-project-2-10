@@ -1,10 +1,12 @@
 import json
+import time
 
 from django.test import TestCase, Client
 from django.urls import reverse
 
 from .models import Package
 from .functions import get_file_content, save_file
+from .views import package_logger
 
 class PackageTest(TestCase):
     def setUp(self):
@@ -12,6 +14,11 @@ class PackageTest(TestCase):
         self.package_id = 0
         self.file_path  = "../zipped_folders/temp.txt"
         self.content    = "hello world"
+
+    @classmethod
+    def tearDownClass(cls):
+        package_logger.delete_logs()
+        super(PackageTest, cls).tearDownClass()
 
     def create_package(self, name, github_url="github.com/fake/repo", version="1.0.0"):
         package = Package.objects.create(

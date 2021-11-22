@@ -1,4 +1,9 @@
+import logging
+import json
+from datetime import datetime
+
 from google.cloud import storage
+from google.cloud import logging as gcloud_logging
 
 from .project1 import main as project1
 
@@ -39,3 +44,47 @@ def get_github_scores(github_url):
         sub_score_dict[name] = sub_scores[i]
 
     return sub_score_dict
+
+class PackageLogger:
+    def __init__(self):
+        self.logger_name    = "PACKAGE_HISTORY"
+        self.logging_client = gcloud_logging.Client()
+        self.logging_client.setup_logging()
+        self.logger = self.logging_client.logger(self.logger_name)
+
+    def delete_logs(self):
+        self.logger.delete()
+
+    def get_package_name_history(self, package_name):
+        package_history = []
+
+        filter_string = "logName:projects/helical-history-332215/logs/" + self.logger_name
+        for entry in self.logging_client.list_entries(filter_=filter_string):
+            payload = entry.payload
+            if json.loads(payload["PackageMetadata"])["Name"] == package_name:
+                package_history.append(payload)
+
+        return package_history
+
+    def log_download(self, package, user):
+        self.__log_action(package, user, "DOWNLOAD")
+
+    def log_update(self, package, user):
+        self.__log_action(package, user, "UPDATE")
+
+    def log_rate(self, package, user):
+        self.__log_action(package, user, "RATE")
+
+    def log_create(self, package, user):
+        self.__log_action(package, user, "CREATE")
+
+    def __log_action(self, package, user, action):
+        log_body = {
+            "Date": str(datetime.today()),
+            "PackageMetadata": json.dumps(
+                package.to_dict()
+            ),
+            "Action": action
+        }
+
+        self.logger.log_struct(log_body)
