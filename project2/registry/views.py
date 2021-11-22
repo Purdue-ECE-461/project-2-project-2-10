@@ -15,6 +15,7 @@ def reset(request):
         if request.method == "DELETE":
             for temp_pacakge in Package.objects.all():
                 temp_pacakge.delete()
+            package_logger.delete_logs()
 
             return HttpResponse(status=200)
 
