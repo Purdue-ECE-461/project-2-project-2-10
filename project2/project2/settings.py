@@ -162,4 +162,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # DATABASE PASSWORD: 3n2ecJAfKeC797xN
 
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../micro-arcadia-332215-bf77a2794f36.json"
+if os.getenv('GITHUB_ACTIONS') == None:
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../micro-arcadia-332215-bf77a2794f36.json"
