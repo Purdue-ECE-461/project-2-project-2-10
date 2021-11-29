@@ -11,7 +11,7 @@ from .project1 import main as project1
 
 def save_file(package_name, zipped_file_content):
     storage_client = storage.Client()
-    bucket         = storage_client.bucket("bucket-461")
+    bucket         = storage_client.bucket("bucket-461-packages")
     blob           = bucket.blob(package_name)
 
     blob.upload_from_string(zipped_file_content)
@@ -24,7 +24,7 @@ def save_file(package_name, zipped_file_content):
 
 def get_file_content(package_name):
     storage_client = storage.Client()
-    bucket         = storage_client.bucket("bucket-461")
+    bucket         = storage_client.bucket("bucket-461-packages")
     blob           = bucket.blob(package_name)
 
     return blob.download_as_string().decode("Cp437")
@@ -57,7 +57,7 @@ class PackageLogger:
     def get_package_name_history(self, package_name):
         package_history = []
 
-        filter_string = "logName:projects/helical-history-332215/logs/" + self.logger_name
+        filter_string = "logName:projects/micro-arcadia-332215/logs/" + self.logger_name
         for entry in self.logging_client.list_entries(filter_=filter_string):
             payload = entry.payload
             if json.loads(payload["PackageMetadata"])["Name"] == package_name:

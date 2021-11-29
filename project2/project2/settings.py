@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 import os
+import socket
 
 from pathlib import Path
 
@@ -73,16 +74,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'project2.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': BASE_DIR / 'db.sqlite3',
-#     }
-# }
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
 if os.getenv('GAE_APPLICATION', None):
     # Running on production App Engine, so connect to Google Cloud SQL using
@@ -96,7 +91,7 @@ if os.getenv('GAE_APPLICATION', None):
             'NAME': 'database-1',
         }
     }
-else:
+elif sock.connect_ex(('127.0.0.1', 3306)) == 0:
     # Running locally so connect to either a local MySQL instance or connect 
     # to Cloud SQL via the proxy.  To start the proxy via command line: 
     #    $ cloud_sql_proxy -instances=[INSTANCE_CONNECTION_NAME]=tcp:3306 
@@ -111,7 +106,13 @@ else:
             'PASSWORD': 'password-1',
         }
     }
-
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators
@@ -160,3 +161,5 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # DATABASE PASSWORD: 3n2ecJAfKeC797xN
+
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../micro-arcadia-332215-1887ce7521e4.json"

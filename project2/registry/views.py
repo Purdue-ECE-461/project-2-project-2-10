@@ -134,7 +134,7 @@ def package(request, package_id=None):
             updated_package.file_path  = save_file(metadata["Name"], data["Content"])
             updated_package.save()
 
-            package_logger.log_update(requested_package, None)
+            package_logger.log_update(updated_package, None)
 
             return HttpResponse(status=200)
 
