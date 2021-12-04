@@ -1,6 +1,6 @@
 import os
 
-GITHUB_TOKEN = os.getenv('GITHUB_TOKEN')
+GITHUB_TOKEN = os.getenv('TOKEN')
 # LOG_LEVEL = os.getenv('LOG_LEVEL')
 # LOG_FILE = os.getenv('LOG_FILE')
 
