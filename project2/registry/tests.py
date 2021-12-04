@@ -188,6 +188,30 @@ class PackageTest(TestCase):
 
         self.assertEqual(response.status_code, 400)
 
+    def test_js_program_fails(self):
+        package            = self.create_package("name")
+        package.is_secret  = True
+        package.js_program = "return 1;"
+        package.save()
+
+        response = self.client.get(
+            reverse("package", kwargs={'package_id': package.package_id}),
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_js_program_passes(self):
+        package            = self.create_package("name")
+        package.is_secret  = True
+        package.js_program = "return 0;"
+        package.save()
+
+        response = self.client.get(
+            reverse("package", kwargs={'package_id': package.package_id}),
+        )
+
+        self.assertEqual(response.status_code, 200)
+
     def test_get_package_scores(self):
         pass
         # browserify_scores = get_github_scores("https://github.com/browserify/browserify")

@@ -4,6 +4,7 @@ import io
 from datetime import datetime
 
 import requests
+import js2py
 
 from google.cloud import storage
 from google.cloud import logging as gcloud_logging
@@ -131,6 +132,25 @@ def get_github_scores(github_url):
         sub_score_dict[name] = sub_scores[i]
 
     return sub_score_dict
+
+def run_js_program(package, downloader):
+    # Given a package and the person trying to download the package, runs a javascript program.
+    # The javascript program is stored in the package's js_program feild. Returns the program's
+    # output.
+
+    module_name         = package.name
+    module_version      = package.version
+    uploader_username   = "none"
+    downloader_username = downloader
+    zip_file            = get_file_content(package.file_path)
+
+    js_program = js2py.eval_js(f"""
+        function f(MODULE_NAME, MODULE_VERSION, UPLOADER_USERNAME, DOWNLOADER_USERNAME, ZIP_FILE) {{
+            {package.js_program}
+        }}
+    """)
+
+    return js_program(module_name, module_version, uploader_username, downloader_username, zip_file)
 
 class PackageLogger:
     def __init__(self):

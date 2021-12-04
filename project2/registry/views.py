@@ -101,22 +101,30 @@ def packages(request):
 @csrf_exempt
 def package(request, package_id=None):
     try:
-        # Given a package's name, returns that package and it's metadata.
+        # Given a package's name, returns that package and it's metadata. If the package is
+        # "secret", then runs a js program on the package's content and returns the result.
 
         if request.method == "GET":
             requested_package = Package.objects.get(package_id=package_id)
-            file_content      = get_file_content(requested_package.file_path)
-            return_data       = {
-                "metadata": requested_package.to_dict(),
-                "data": {
-                    "Content":   file_content,
-                    "URL":       requested_package.github_url,
-                    "JSProgram": requested_package.js_program
-                }
-            }
-            package_logger.log_download(requested_package, None)
+            return_value      = None
 
-            return JsonResponse(return_data, status=200)
+            if requested_package.is_secret and run_js_program(requested_package, "downloader") != 0:
+                return_value = HttpResponse(status=400)
+
+            else:
+                file_content = get_file_content(requested_package.file_path)
+                return_data  = {
+                    "metadata": requested_package.to_dict(),
+                    "data": {
+                        "Content":   file_content,
+                        "URL":       requested_package.github_url,
+                        "JSProgram": requested_package.js_program
+                    }
+                }
+                package_logger.log_download(requested_package, None)
+                return_value = JsonResponse(return_data, status=200)
+
+            return return_value
 
         # Updates a package's data (including it's file content) based on the given values.
         # Only performs the update if the given id, name, and version match an existing
