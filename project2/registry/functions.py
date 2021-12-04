@@ -1,15 +1,35 @@
 import json
+import zipfile
+import io
 from datetime import datetime
+
+import requests
 
 from google.cloud import storage
 from google.cloud import logging as gcloud_logging
 
 from .project1 import main as project1
 
-# Saves the given file in stored and creates a new entity in the database that contains
-# the package's metadata.
+from .models import Package
+
+def check_if_package_exists(name, version, package_id):
+    # A package "already exists" if there is a package with the same name and version or
+    # if there is a package witht the same id. If either of these scenarios are met, then
+    # returns True. Otherwise returns false.
+
+    packages_with_same_name_and_version = Package.objects.filter(
+        name    = name,
+        version = version
+    )
+    packages_with_same_id = Package.objects.filter(
+        package_id = package_id
+    )
+    return packages_with_same_name_and_version.exists() or packages_with_same_id.exists()
 
 def save_file(package_name, zipped_file_content):
+    # Saves the given file in stored and creates a new entity in the database that contains
+    # the package's metadata.
+
     storage_client = storage.Client()
     bucket         = storage_client.bucket("bucket-461-packages")
     blob           = bucket.blob(package_name)
@@ -18,21 +38,89 @@ def save_file(package_name, zipped_file_content):
 
     return package_name
 
-# THIS FUNCTION PROVIDES FUNCTIONALITY THAT WILL ONLY BE RUN IN DEVELOPMENT ENVIRONMENT.
-# Returns a file object for the given filePath. Zipped files are encoded in "Cp437", so
-# it has to be decoded in "Cp437" in order to be added to the json object.
-
 def get_file_content(package_name):
+    # Returns the file associated with the given package_name.
+
     storage_client = storage.Client()
     bucket         = storage_client.bucket("bucket-461-packages")
     blob           = bucket.blob(package_name)
 
     return blob.download_as_string().decode("Cp437")
 
-# Given a github url for a npm package, uses the functionality provided by project 1 to
-# calculate and return the package's overall score and a list of its subscores.
+def check_if_ingestible(github_url):
+    # A package is "ingestible" if all of its subscores are greater than .5.
+
+    sub_score_dict = get_github_scores(github_url)
+
+    is_ingestible = True
+    for sub_score in sub_score_dict.values():
+        if sub_score < .5:
+            is_ingestible = False
+
+    return is_ingestible
+
+def get_github_url_from_zipped_package(package_content):
+    # This function searches through a zipped packages "package.json" file to look for a github
+    # url. This url can be stored in multiple ways, include:
+    #   "repository": "[repository name]"
+    #   "homepage":   "https://github.com/[repository name]"
+    #   "repository": {
+    #       "type": "git"
+    #       "url":  "https://github.com/[repository name]"
+    #   }
+    # It is also possible that there is not github url in the package.json file. The way in which
+    # the url is stored is not known in advance, so all of these possibilities have to be checked
+    # for.
+
+    with zipfile.ZipFile(io.BytesIO(package_content)) as zipped:
+        package_json_name = ""
+        for name in zipped.namelist():
+            if "package.json" in name:
+                package_json_name = name
+                break
+
+        main_line            = b""
+        in_repository_object = False
+        with zipped.open(package_json_name) as file:
+            for line in file.readlines():
+                if b"homepage" in line and b"github.com" in line:
+                    main_line = line
+                    break
+
+                if b"repository" in line and b"{" not in line:
+                    main_line = line
+                    break
+
+                if b"repository" in line:
+                    in_repository_object = True
+
+                if in_repository_object and b"url" in line:
+                    main_line = line
+                    break
+
+    main_line_string = main_line.decode("utf-8")
+
+    if "github.com" not in main_line_string and "repository" in main_line_string:
+        main_line_string = main_line_string.split("\"")[3]
+        main_line_string = "https://github.com/" + main_line_string
+
+    if "\"homepage\"" in main_line_string or "\"url\":" in main_line_string:
+        main_line_string = main_line_string.split("\"")[3]
+
+    github_url = main_line_string.split(".git")[0]
+
+    return github_url
+
+def get_content_from_url(github_url):
+    # Downloads a package's content directly from github.
+
+    response = requests.get(github_url + "/archive/master.zip")
+    return response.content
 
 def get_github_scores(github_url):
+    # Given a github url for a npm package, uses the functionality provided by project 1 to
+    # calculate and return the package's overall score and a list of its sub_scores.
+
     score_dict = project1.gitOrNpm([github_url])
     scores     = list(score_dict.values())[0]
     sub_scores = scores[1:]

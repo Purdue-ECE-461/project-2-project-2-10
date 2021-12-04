@@ -132,13 +132,13 @@ def get_license(packageJSON):
 
 
 def getJSONPackage(baseURL):
-    baseURL = baseURL + "/contents/package.json"
+    baseURL  = baseURL + "/contents/package.json"
     response = requests.get(baseURL, headers=headers)
-    data = response.json()
+    data     = response.json()
     if 'content' in data:
         base64_message = base64.b64decode(data['content'])
-        output = base64_message.decode()
-        output = json.loads(output)
+        output         = base64_message.decode()
+        output         = json.loads(output)
         # print(type(output))
     else:
         output = {}

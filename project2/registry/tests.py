@@ -4,7 +4,7 @@ from django.test import TestCase, Client
 from django.urls import reverse
 
 from .models import Package
-from .functions import get_file_content, save_file
+from .functions import *
 
 class PackageTest(TestCase):
     def setUp(self):
@@ -30,13 +30,13 @@ class PackageTest(TestCase):
 
         return package
 
-    def test_post_packages(self):
+    def test_post_package(self):
         package_name    = "name"
         package_version = "1.0.1"
         package_id      = "1"
-        package_content = self.content
-        package_url     = "github"
         package_js      = "js"
+        with open("../zipped_folders/browserify-master.zip", "rb") as file:
+            package_content = file.read().decode("Cp437")
 
         response = self.client.post(
             reverse('packages'),
@@ -48,20 +48,18 @@ class PackageTest(TestCase):
                 }),
                 "data": json.dumps({
                     "Content": package_content,
-                    "URL": package_url,
                     "JSProgram": package_js
                 })
             }
         )
 
-        saved_package = Package.objects.first()
-        saved_content = get_file_content(saved_package.file_path)
+        created_package         = Package.objects.first()
+        created_package_content = get_file_content(created_package.file_path)
+        created_package_url     = created_package.github_url
 
         self.assertEqual(response.status_code, 201)
-
-        self.assertEqual(saved_package.name, package_name)
-        self.assertEqual(saved_package.package_id, package_id)
-        self.assertEqual(saved_content, package_content)
+        self.assertEqual(created_package_content, package_content)
+        self.assertEqual(created_package_url, "http://github.com/browserify/browserify")
 
     def test_get_packages(self):
         package1 = self.create_package("name1")
@@ -87,8 +85,11 @@ class PackageTest(TestCase):
         self.assertEqual(content2["packages"][1]["Name"], package4.name)
 
     def test_get_package(self):
-        package = self.create_package("name")
-        save_file(package.name, self.content)
+        zipped_file = "../zipped_folders/browserify-master.zip"
+        name        = "browserify-master"
+        with open(zipped_file, "rb") as file:
+            save_file(name, file.read())
+        package = self.create_package(name)
 
         response = self.client.get(
             reverse("package", kwargs={'package_id': package.package_id}))
@@ -99,6 +100,9 @@ class PackageTest(TestCase):
         self.assertEqual(response_content["metadata"]["Name"],    package.name)
         self.assertEqual(response_content["metadata"]["Version"], package.version)
         self.assertEqual(response_content["metadata"]["ID"],      package.package_id)
+
+        with open(zipped_file, "rb") as file:
+            self.assertEqual(response_content["data"]["Content"], file.read().decode("CP437"))
 
     def test_delete_package(self):
         package = self.create_package("name")
@@ -130,3 +134,72 @@ class PackageTest(TestCase):
         self.client.delete(reverse("reset"))
 
         self.assertEqual(Package.objects.count(), 0)
+
+    def test_ingestion(self):
+        package_name    = "name"
+        package_version = "1.0.1"
+        package_id      = "1"
+        package_url     = "https://github.com/expressjs/express"
+        package_js      = "js"
+
+        response = self.client.post(
+            reverse('packages'),
+            data = {
+                "metadata": json.dumps({
+                    "Name": package_name,
+                    "Version": package_version,
+                    "ID": package_id
+                }),
+                "data": json.dumps({
+                    "URL": package_url,
+                    "JSProgram": package_js
+                })
+            }
+        )
+
+        ingested_package      = Package.objects.first()
+        ingested_file_content = get_file_content(ingested_package.file_path)
+
+        self.assertEqual(response.status_code, 201)
+        with open("../zipped_folders/express-master.zip", "rb") as file:
+            self.assertEqual(ingested_file_content, file.read().decode("Cp437"))
+
+    def test_failed_ingestion(self):
+        package_name    = "name"
+        package_version = "1.0.1"
+        package_id      = "1"
+        package_url     = "https://github.com/nullivex/nodist"
+        package_js      = "js"
+
+        response = self.client.post(
+            reverse('packages'),
+            data = {
+                "metadata": json.dumps({
+                    "Name": package_name,
+                    "Version": package_version,
+                    "ID": package_id
+                }),
+                "data": json.dumps({
+                    "URL": package_url,
+                    "JSProgram": package_js
+                })
+            }
+        )
+
+        self.assertEqual(response.status_code, 400)
+
+    def test_get_package_scores(self):
+        pass
+        # browserify_scores = get_github_scores("https://github.com/browserify/browserify")
+        # cloudinary_scores = get_github_scores("https://github.com/cloudinary/cloudinary_npm")
+        # express_scores    = get_github_scores("https://github.com/expressjs/express")
+        # nodist_scores     = get_github_scores("https://github.com/nullivex/nodist")
+        # lodash_scores     = get_github_scores("https://github.com/lodash/lodash")
+
+        # print(browserify_scores.keys())
+
+        # print("browserify: ", browserify_scores.values())
+        # print("cloudinary: ", cloudinary_scores.values())
+        # print("express:    ", express_scores.values())
+        # print("nodist:     ", nodist_scores.values())
+        # print("lodash:     ", lodash_scores.values())

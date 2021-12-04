@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.http import HttpResponse, JsonResponse
 
 from .models import Package
-from .functions import save_file, get_file_content, get_github_scores, PackageLogger
+from .functions import *
 
 package_logger = PackageLogger()
 
@@ -28,34 +28,40 @@ def reset(request):
 @csrf_exempt
 def packages(request):
     try:
-        # Endpoint for uploading a new package. Recieves a request that contains a zipped package
-        # and metadata about that package. Calls save_file() to save the zipped package in
-        # persistent data, and saves the package's metadata to a SQL database.
+        # Endpoint for uploading a new package. Recieves metadata about the package and 2 possible
+        # bodies: a github url or the package content. If the githhub url is given, then checks if
+        # the package is "ingestible" (all subscores > .5). If it is, then downloads the package
+        # content from github and creates a new package. If the package content is given, then
+        # searchs through the package content to find its github url, and creates a new package.
 
         if request.method == "POST":
             metadata = json.loads(request.POST["metadata"])
             data     = json.loads(request.POST["data"])
 
-            zipped_file_content = data['Content']
-            file_location      = save_file(metadata['Name'], zipped_file_content)
-
-            packages_with_same_name_and_version = Package.objects.filter(
-                name    = metadata["Name"],
-                version = metadata["Version"]
-            )
-            packages_with_same_id = Package.objects.filter(
-                package_id = metadata["ID"]
-            )
-
-            if packages_with_same_name_and_version.exists() or packages_with_same_id.exists():
+            if check_if_package_exists(metadata["Name"], metadata["Version"], metadata["ID"]):
                 return HttpResponse(status=403)
+
+            github_url      = None
+            package_content = None
+
+            if "URL" in data:
+                if check_if_ingestible(data["URL"]):
+                    github_url      = data["URL"]
+                    package_content = get_content_from_url(github_url)
+                else:
+                    return HttpResponse(status=400)
+            else:
+                package_content = data['Content'].encode("Cp437")
+                github_url      = get_github_url_from_zipped_package(package_content)
+
+            file_location = save_file(metadata['Name'], package_content)
 
             created_package = Package.objects.create(
                 name       = metadata["Name"],
                 package_id = metadata["ID"],
                 version    = metadata["Version"],
                 file_path  = file_location,
-                github_url = data["URL"],
+                github_url = github_url,
                 js_program = data["JSProgram"]
             )
 
