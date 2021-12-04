@@ -157,10 +157,10 @@ class PackageTest(TestCase):
             }
         )
 
+        self.assertEqual(response.status_code, 201)
+
         ingested_package      = Package.objects.first()
         ingested_file_content = get_file_content(ingested_package.file_path)
-
-        self.assertEqual(response.status_code, 201)
         with open("../zipped_folders/express-master.zip", "rb") as file:
             self.assertEqual(ingested_file_content, file.read().decode("Cp437"))
 
