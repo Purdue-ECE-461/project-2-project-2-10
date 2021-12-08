@@ -16,7 +16,7 @@ jobs:
     - name: update app.yaml
       uses: DamianReeves/write-file-action@v1.0
       with:
-        path: ${{ env.home }}/project2/app.yaml
+        path: ${{ env.GITHUB_WORKSPACE }}/project2/app.yaml
         contents: |
           env_variables:
             TOKEN: "${{ secrets.TOKEN }}"
