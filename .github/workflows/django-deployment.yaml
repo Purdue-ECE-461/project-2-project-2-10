@@ -12,6 +12,14 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+      
+    - name: update app.yaml
+      with:
+        path: ${{ env.home }}/project2/app.yaml
+        contents: |
+          env_variables:
+            TOKEN: ${{ secrets.TOKEN }}
+        write-mode: append
 
     - name: deploy to app engine
       uses: google-github-actions/deploy-appengine@v0.2.0
