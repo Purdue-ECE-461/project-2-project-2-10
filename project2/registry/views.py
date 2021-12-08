@@ -51,7 +51,7 @@ def packages(request):
                 else:
                     return HttpResponse(status=400)
             else:
-                package_content = data["Content"].encode("utf-8")
+                package_content = data["Content"]
                 github_url      = get_github_url_from_zipped_package(package_content)
 
             file_location = save_file(metadata['Name'], package_content)
