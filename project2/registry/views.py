@@ -89,7 +89,7 @@ def packages(request):
 
             return JsonResponse({
                 "packages": package_list,
-                "nextOffset": offset + batch_size
+                "nextOffset": offset + len(package_list)
             }, status=200)
 
         return HttpResponse(status=404)

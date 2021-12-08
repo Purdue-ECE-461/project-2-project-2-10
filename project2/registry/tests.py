@@ -62,10 +62,8 @@ class PackageTest(TestCase):
         self.assertEqual(created_package_url, "https://github.com/expressjs/express")
 
     def test_get_packages(self):
-        package1 = self.create_package("name1")
-        package2 = self.create_package("name2")
-        package3 = self.create_package("name3")
-        package4 = self.create_package("name4")
+        for package_number in range(21):
+            self.create_package("name" + str(package_number))
 
         response1 = self.client.get(reverse("packages"))
         content1  = json.loads(response1.content.decode("utf8"))
@@ -73,16 +71,18 @@ class PackageTest(TestCase):
         response2 = self.client.get(reverse("packages"), {"offset": content1["nextOffset"]})
         content2  = json.loads(response2.content.decode("utf8"))
 
+        response3 = self.client.get(reverse("packages"), {"offset": content2["nextOffset"]})
+        content3  = json.loads(response3.content.decode("utf8"))
+
         self.assertEqual(response1.status_code, 200)
         self.assertEqual(response2.status_code, 200)
+        self.assertEqual(response3.status_code, 200)
 
-        self.assertEqual(len(content1), 2)
-        self.assertEqual(content1["packages"][0]["Name"], package1.name)
-        self.assertEqual(content1["packages"][1]["Name"], package2.name)
+        self.assertEqual(len(content1["packages"]), 10)
+        self.assertEqual(len(content2["packages"]), 10)
+        self.assertEqual(len(content3["packages"]), 1)
 
-        self.assertEqual(len(content2), 2)
-        self.assertEqual(content2["packages"][0]["Name"], package3.name)
-        self.assertEqual(content2["packages"][1]["Name"], package4.name)
+        self.assertEqual(content3["nextOffset"], 21)
 
     def test_get_package(self):
         zipped_file = "../zipped_folders/browserify-master.zip"
