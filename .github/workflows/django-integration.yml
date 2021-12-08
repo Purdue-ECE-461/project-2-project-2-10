@@ -34,8 +34,6 @@ jobs:
     - name: Run Tests
       run: |
         cd project2/
-        python manage.py test        
+        python manage.py test
       env:
         TOKEN: ${{ secrets.TOKEN }}
-
-
