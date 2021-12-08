@@ -35,7 +35,7 @@ class PackageTest(TestCase):
         package_version = "1.0.1"
         package_id      = "1"
         package_js      = "js"
-        with open("../zipped_folders/browserify-master.zip", "rb") as file:
+        with open("../zipped_folders/express-master.zip", "rb") as file:
             package_content = file.read().decode("Cp437")
 
         response = self.client.post(
@@ -59,7 +59,7 @@ class PackageTest(TestCase):
 
         self.assertEqual(response.status_code, 201)
         self.assertEqual(created_package_content, package_content)
-        self.assertEqual(created_package_url, "http://github.com/browserify/browserify")
+        self.assertEqual(created_package_url, "https://github.com/expressjs/express")
 
     def test_get_packages(self):
         package1 = self.create_package("name1")

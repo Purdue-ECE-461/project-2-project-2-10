@@ -169,5 +169,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 # DATABASE PASSWORD: 3n2ecJAfKeC797xN
 
-if os.getenv('GITHUB_ACTIONS') == None:
+if os.getenv('GITHUB_ACTIONS') == None and not os.getenv('GAE_APPLICATION', None):
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../symmetric-index-334318-465d6e52cb22.json"

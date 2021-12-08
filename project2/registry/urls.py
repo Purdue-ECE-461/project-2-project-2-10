@@ -7,5 +7,5 @@ urlpatterns = [
     path('package',                         packages,    name='packages'),
     path('package/<slug:package_id>',       package,     name='package'),
     path('package/<slug:package_id>/rate',  rating,      name='rating'),
-    path('package/by_name/<slug:name>',     by_name,     name="by_name")
+    path('package/byName/<slug:name>',      by_name,     name="by_name")
 ]

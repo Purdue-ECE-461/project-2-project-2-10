@@ -167,12 +167,15 @@ class PackageLogger:
         self.logger = self.logging_client.logger(self.logger_name)
 
     def delete_logs(self):
-        self.logger.delete()
+        try:
+            self.logger.delete()
+        except (Exception,):
+            pass
 
     def get_package_name_history(self, package_name):
         package_history = []
 
-        filter_string = "logName:projects/micro-arcadia-332215/logs/" + self.logger_name
+        filter_string = "logName:projects/symmetric-index-334318/logs/" + self.logger_name
         for entry in self.logging_client.list_entries(filter_=filter_string):
             payload = entry.payload
             if json.loads(payload["PackageMetadata"])["Name"] == package_name:

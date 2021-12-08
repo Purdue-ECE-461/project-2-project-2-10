@@ -12,3 +12,6 @@ handlers:
 - url: /.*
   script: auto
 # [END django_app]
+
+env_variables:
+  TOKEN: ‘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’

@@ -75,7 +75,7 @@ def packages(request):
         # that the client wants the next batch of packages.
 
         if request.method == "GET":
-            batch_size = 2
+            batch_size = 10
 
             offset = request.GET.get('offset')
             if offset is None:
@@ -132,8 +132,8 @@ def package(request, package_id=None):
 
         if request.method == "PUT":
             request_data = json.loads(request.body.decode("utf8"))
-            metadata     = request_data["metadata"]
-            data         = request_data["data"]
+            metadata     = json.loads(request_data["metadata"])
+            data         = json.loads(request_data["data"])
 
             updated_package = Package.objects.get(package_id=package_id)
 
@@ -143,9 +143,14 @@ def package(request, package_id=None):
             if not do_names_match or not do_versions_match:
                 return HttpResponse(status=400)
 
-            updated_package.github_url = data["URL"]
-            updated_package.js_program = data["JSProgram"]
-            updated_package.file_path  = save_file(metadata["Name"], data["Content"])
+            if "URL" in data:
+                updated_package.github_url = data["URL"]
+            if "JSProgram" in data:
+                updated_package.js_program = data["JSProgram"]
+            if "Content" in data:
+                content                   = data["Content"].encode("Cp437")
+                updated_package.file_path = save_file(metadata["Name"], content)
+
             updated_package.save()
 
             package_logger.log_update(updated_package, None)
