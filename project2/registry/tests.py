@@ -36,7 +36,7 @@ class PackageTest(TestCase):
         package_id      = "1"
         package_js      = "js"
         with open("../zipped_folders/express-master.zip", "rb") as file:
-            package_content = file.read().decode("Cp437")
+            package_content = base64.b64encode(file.read()).decode("utf-8")
 
         response = self.client.post(
             reverse('packages'),
@@ -87,9 +87,10 @@ class PackageTest(TestCase):
     def test_get_package(self):
         zipped_file = "../zipped_folders/browserify-master.zip"
         name        = "browserify-master"
+        package     = self.create_package(name)
         with open(zipped_file, "rb") as file:
-            save_file(name, file.read())
-        package = self.create_package(name)
+            file_content = base64.b64encode(file.read()).decode("utf-8")
+        save_file(name, file_content)
 
         response = self.client.get(
             reverse("package", kwargs={'package_id': package.package_id}))
@@ -102,7 +103,8 @@ class PackageTest(TestCase):
         self.assertEqual(response_content["metadata"]["ID"],      package.package_id)
 
         with open(zipped_file, "rb") as file:
-            self.assertEqual(response_content["data"]["Content"], file.read().decode("CP437"))
+            file_content = base64.b64encode(file.read()).decode("utf-8")
+            self.assertEqual(response_content["data"]["Content"], file_content)
 
     def test_delete_package(self):
         package = self.create_package("name")
@@ -162,7 +164,8 @@ class PackageTest(TestCase):
         ingested_package      = Package.objects.first()
         ingested_file_content = get_file_content(ingested_package.file_path)
         with open("../zipped_folders/express-master.zip", "rb") as file:
-            self.assertEqual(ingested_file_content, file.read().decode("Cp437"))
+            file_content = base64.b64encode(file.read()).decode("utf-8")
+            self.assertEqual(ingested_file_content, file_content)
 
     def test_failed_ingestion(self):
         package_name    = "name"

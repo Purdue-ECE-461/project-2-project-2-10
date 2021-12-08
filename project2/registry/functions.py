@@ -1,5 +1,6 @@
 import json
 import zipfile
+import base64
 import io
 from datetime import datetime
 
@@ -73,12 +74,17 @@ def get_github_url_from_zipped_package(package_content):
     # the url is stored is not known in advance, so all of these possibilities have to be checked
     # for.
 
+    package_content = base64.b64decode(package_content)
+
     with zipfile.ZipFile(io.BytesIO(package_content)) as zipped:
         package_json_name = ""
         for name in zipped.namelist():
             if "package.json" in name:
                 package_json_name = name
                 break
+
+        if package_json_name == "":
+            return ""
 
         main_line            = b""
         in_repository_object = False
@@ -116,7 +122,9 @@ def get_content_from_url(github_url):
     # Downloads a package's content directly from github.
 
     response = requests.get(github_url + "/archive/master.zip")
-    return response.content
+    content  = response.content
+
+    return base64.b64encode(content).decode("utf-8")
 
 def get_github_scores(github_url):
     # Given a github url for a npm package, uses the functionality provided by project 1 to
