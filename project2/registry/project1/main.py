@@ -66,7 +66,7 @@ def gitOrNpm(urlList):
 
 #function to print the urls with their scores
 def printUrlWithScore(urlDict):
-	print("\nURL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE\n")
+	print("\nURL NET_SCORE RAMP_UP_SCORE CORRECTNESS_SCORE BUS_FACTOR_SCORE RESPONSIVE_MAINTAINER_SCORE LICENSE_SCORE FRACTION_PINNED\n")
 
 	for key, value in urlDict.items():
 		print(key + " ", end="")

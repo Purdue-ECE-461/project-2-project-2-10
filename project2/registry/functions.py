@@ -32,7 +32,7 @@ def save_file(package_name, zipped_file_content):
     # the package's metadata.
 
     storage_client = storage.Client()
-    bucket         = storage_client.bucket("bucket-461-packages")
+    bucket         = storage_client.bucket("project-2-10")
     blob           = bucket.blob(package_name)
 
     blob.upload_from_string(zipped_file_content)
@@ -43,7 +43,7 @@ def get_file_content(package_name):
     # Returns the file associated with the given package_name.
 
     storage_client = storage.Client()
-    bucket         = storage_client.bucket("bucket-461-packages")
+    bucket         = storage_client.bucket("project-2-10")
     blob           = bucket.blob(package_name)
 
     return blob.download_as_string().decode("Cp437")
@@ -126,7 +126,14 @@ def get_github_scores(github_url):
     scores     = list(score_dict.values())[0]
     sub_scores = scores[1:]
 
-    sub_score_names = ["RampUp", "Correctness", "BusFactor", "ResponsiveMaintainer", "LicenseScore"]
+    sub_score_names = [
+        "RampUp",
+        "Correctness",
+        "BusFactor",
+        "ResponsiveMaintainer",
+        "LicenseScore",
+        "FractionPinned"
+    ]
     sub_score_dict  = {}
     for i, name in enumerate(sub_score_names):
         sub_score_dict[name] = sub_scores[i]

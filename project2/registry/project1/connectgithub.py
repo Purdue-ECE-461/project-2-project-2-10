@@ -3,6 +3,7 @@ import re
 import urllib.parse
 import base64
 import json
+import github
 from .readEnvironment import *
 
 # GITHUB_TOKEN = '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'
@@ -11,6 +12,8 @@ headers = {'Authorization': 'token ' + GITHUB_TOKEN}
 # # logFile_ptr = open("logFile.txt", "w")
 # LOG_LEVEL = "1"
 
+
+    
 
 def getUrl(url):
     parsed = urllib.parse.urlsplit(url).path
@@ -285,6 +288,33 @@ def scoreLicCompat(packageJSON):
 
     return score
 
+def scoreFractionDependenciesPinned(packageJson):
+    numDependencies       = 0
+    numPinnedDependencies = 0
+
+    for dependency in packageJson["dependencies"].items():
+        version = dependency[1]
+
+        if "~" in version:
+            version  = version.replace("~", "")
+            elements = version.split(".")
+            if len(elements) != 1:
+                numPinnedDependencies += 1 
+
+        elif "^" in version:
+            version  = version.replace("^", "")
+            elements = version.split(".")
+            if elements[0] == "0":
+                numPinnedDependencies += 1
+
+        else:
+            numPinnedDependencies += 1
+
+        numDependencies += 1
+
+    if numDependencies == 0:
+        return 1
+    return numPinnedDependencies / numDependencies
 
 def cumulativeScore(baseURL, packageJSON):
     score = []
@@ -293,7 +323,7 @@ def cumulativeScore(baseURL, packageJSON):
         score.append(round(x, 2))
     else:
         x = (5 * scoreBusFactor(baseURL) + 4 * scoreResponsiveness(baseURL) + 3 * scoreRampup(
-            packageJSON) + 2 * scoreCorrectness(packageJSON) + scoreLicCompat(packageJSON)) / 15
+            packageJSON) + 2 * scoreCorrectness(packageJSON) + scoreLicCompat(packageJSON) + scoreFractionDependenciesPinned(packageJSON)) / 16
         score.append(round(x, 2))
 
     if len(packageJSON) != 0:
@@ -312,6 +342,8 @@ def cumulativeScore(baseURL, packageJSON):
         score.append(round(scoreLicCompat(packageJSON), 2))
     else:
         score.append(0)
+
+    score.append(round(scoreFractionDependenciesPinned(packageJSON), 2))
 
     return score
 

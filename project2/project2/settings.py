@@ -79,13 +79,20 @@ WSGI_APPLICATION = 'project2.wsgi.application'
 
 sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': BASE_DIR / 'db.sqlite3',
+#     }
+# }
+
 if os.getenv('GAE_APPLICATION', None):
     # Running on production App Engine, so connect to Google Cloud SQL using
     # the unix socket at /cloudsql/<your-cloudsql-connection string>
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql_psycopg2',
-            'HOST': '/cloudsql/micro-arcadia-332215:us-central1:instance-1',
+            'HOST': '/cloudsql/symmetric-index-334318:us-central1:instance-1',
             'USER': 'user-1',
             'PASSWORD': 'password-1',
             'NAME': 'database-1',
@@ -163,4 +170,4 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 # DATABASE PASSWORD: 3n2ecJAfKeC797xN
 
 if os.getenv('GITHUB_ACTIONS') == None:
-    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../micro-arcadia-332215-bf77a2794f36.json"
+    os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../symmetric-index-334318-465d6e52cb22.json"
