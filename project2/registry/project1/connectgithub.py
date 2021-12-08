@@ -292,6 +292,9 @@ def scoreFractionDependenciesPinned(packageJson):
     numDependencies       = 0
     numPinnedDependencies = 0
 
+    if "dependencies" not in packageJson:
+        return 1.0
+
     for dependency in packageJson["dependencies"].items():
         version = dependency[1]
 
