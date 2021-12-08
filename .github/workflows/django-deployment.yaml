@@ -18,8 +18,7 @@ jobs:
       with:
         path: project2/app.yaml
         contents: |
-          env_variables:
-            TOKEN: "${{ secrets.TOKEN }}"
+          env_variables:\n\tTOKEN: "${{ secrets.TOKEN }}"
         write-mode: append
 
     - name: deploy to app engine
