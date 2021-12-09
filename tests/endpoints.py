@@ -120,8 +120,7 @@ def request_ingestion(url, githubUrl, packageName, id="0"):
 
 
 if __name__ == "__main__":
-    # url = "https://symmetric-index-334318.uc.r.appspot.com/"
-    url = "http://127.0.0.1:8000/"
+    url = "https://symmetric-index-334318.uc.r.appspot.com/"
 
     resetResponse = reset_database(url)
 

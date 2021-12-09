@@ -36,6 +36,8 @@ ALLOWED_HOSTS = ['*']
 INSTALLED_APPS = [
     'registry',
 
+    "corsheaders",
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -45,6 +47,9 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    "corsheaders.middleware.CorsMiddleware",
+    "django.middleware.common.CommonMiddleware",
+
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -171,3 +176,5 @@ DATA_UPLOAD_MAX_MEMORY_SIZE = None
 
 if os.getenv('GITHUB_ACTIONS') == None and not os.getenv('GAE_APPLICATION', None):
     os.environ["GOOGLE_APPLICATION_CREDENTIALS"] = "../symmetric-index-334318-465d6e52cb22.json"
+
+CORS_ALLOW_ALL_ORIGINS = True
