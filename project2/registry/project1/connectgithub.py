@@ -6,14 +6,12 @@ import json
 import github
 from .readEnvironment import *
 
-# GITHUB_TOKEN = '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'
+GITHUB_TOKEN = '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'
 headers = {'Authorization': 'token ' + GITHUB_TOKEN}
 # logFile_ptr = open(LOG_FILE, "w")
 # # logFile_ptr = open("logFile.txt", "w")
 # LOG_LEVEL = "1"
 
-
-    
 
 def getUrl(url):
     parsed = urllib.parse.urlsplit(url).path
