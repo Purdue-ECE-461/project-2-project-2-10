@@ -19,6 +19,7 @@ decorator==5.1.0
 Deprecated==1.2.13
 distlib==0.3.3
 Django==3.2.8
+django-cors-headers==3.10.1
 eth-abi==2.1.1
 eth-account==0.5.6
 eth-hash==0.3.2
