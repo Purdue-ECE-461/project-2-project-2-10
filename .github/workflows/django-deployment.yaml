@@ -14,12 +14,17 @@ jobs:
       uses: actions/checkout@v2
       
     - name: update app.yaml
+      uses: DamianReeves/write-file-action@v1.0
       with:
-        path: ${{ env.home }}/project2/app.yaml
+        path: project2/app.yaml
         contents: |
           env_variables:
-            TOKEN: ${{ secrets.TOKEN }}
+            TOKEN: "${{ secrets.TOKEN }}"
         write-mode: append
+        
+    - name: print
+      run:
+        cat project2/app.yaml
 
     - name: deploy to app engine
       uses: google-github-actions/deploy-appengine@v0.2.0
