@@ -1,5 +1,6 @@
 import time
 import json
+import base64
 import requests
 
 def reset_database(url):
@@ -10,11 +11,11 @@ def reset_database(url):
 
 def create_package(url, packagePath, packageName, id="0"):
     url = url + "package"
-
+        
     with open(packagePath, "rb") as file:
-        content = file.read().decode("Cp437")
+        content = base64.b64encode(file.read()).decode("utf-8")
 
-    body = {
+    body = json.dumps({
         "metadata": json.dumps({
             "Name": packageName,
             "Version": "1.0." + id,
@@ -24,7 +25,7 @@ def create_package(url, packagePath, packageName, id="0"):
             "Content": content,
             "JSProgram": "return 0;"
         })
-    }
+    })
 
     response = requests.post(url, data=body)
 
@@ -52,7 +53,7 @@ def get_package(url, id):
 
 def update_package(url, package, newPackagePath):
     with open(newPackagePath, "rb") as file:
-        content = file.read().decode("Cp437")
+        content = base64.b64encode(file.read()).decode("utf-8")
 
     url  = url + "package/" + package["ID"]
     body = json.dumps({
@@ -101,7 +102,7 @@ def delete_packages_by_name(url, name):
 def request_ingestion(url, githubUrl, packageName, id="0"):
     url = url + "package"
 
-    body = {
+    body = json.dumps({
         "metadata": json.dumps({
             "Name": packageName,
             "Version": "1.0." + id,
@@ -111,7 +112,7 @@ def request_ingestion(url, githubUrl, packageName, id="0"):
             "URL": githubUrl,
             "JSProgram": "return 0;"
         })
-    }
+    })
 
     response = requests.post(url, data=body)
 
@@ -125,7 +126,6 @@ if __name__ == "__main__":
     resetResponse = reset_database(url)
 
     create_package(url, "../zipped_folders/browserify-master.zip", "browserify-master")
-    create_package(url, "../zipped_folders/cloudinary_npm-master.zip", "cloudinary_npm-master")
     create_package(url, "../zipped_folders/nodist-master.zip", "nodist-master")
     request_ingestion(url, "https://github.com/expressjs/express", "express-master")
 

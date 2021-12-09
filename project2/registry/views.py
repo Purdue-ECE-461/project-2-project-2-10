@@ -35,8 +35,10 @@ def packages(request):
         # searchs through the package content to find its github url, and creates a new package.
 
         if request.method == "POST":
-            metadata = json.loads(request.POST["metadata"])
-            data     = json.loads(request.POST["data"])
+            request_post = json.loads(request.body.decode("utf8"))
+
+            metadata = json.loads(request_post["metadata"])
+            data     = json.loads(request_post["data"])
 
             if check_if_package_exists(metadata["Name"], metadata["Version"], metadata["ID"]):
                 return HttpResponse(status=403)

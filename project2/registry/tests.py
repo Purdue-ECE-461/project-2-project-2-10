@@ -40,7 +40,7 @@ class PackageTest(TestCase):
 
         response = self.client.post(
             reverse('packages'),
-            data = {
+            json.dumps({
                 "metadata": json.dumps({
                     "Name": package_name,
                     "Version": package_version,
@@ -50,7 +50,8 @@ class PackageTest(TestCase):
                     "Content": package_content,
                     "JSProgram": package_js
                 })
-            }
+            }),
+            content_type='application/json'
         )
 
         created_package         = Package.objects.first()
@@ -146,7 +147,7 @@ class PackageTest(TestCase):
 
         response = self.client.post(
             reverse('packages'),
-            data = {
+            json.dumps({
                 "metadata": json.dumps({
                     "Name": package_name,
                     "Version": package_version,
@@ -156,7 +157,8 @@ class PackageTest(TestCase):
                     "URL": package_url,
                     "JSProgram": package_js
                 })
-            }
+            }),
+            content_type='application/json'
         )
 
         self.assertEqual(response.status_code, 201)
@@ -176,7 +178,7 @@ class PackageTest(TestCase):
 
         response = self.client.post(
             reverse('packages'),
-            data = {
+            json.dumps({
                 "metadata": json.dumps({
                     "Name": package_name,
                     "Version": package_version,
@@ -186,7 +188,8 @@ class PackageTest(TestCase):
                     "URL": package_url,
                     "JSProgram": package_js
                 })
-            }
+            }),
+            content_type='application/json'
         )
 
         self.assertEqual(response.status_code, 400)
