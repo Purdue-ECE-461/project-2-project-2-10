@@ -41,15 +41,15 @@ class PackageTest(TestCase):
         response = self.client.post(
             reverse('packages'),
             json.dumps({
-                "metadata": json.dumps({
+                "metadata": {
                     "Name": package_name,
                     "Version": package_version,
                     "ID": package_id
-                }),
-                "data": json.dumps({
+                },
+                "data": {
                     "Content": package_content,
                     "JSProgram": package_js
-                })
+                }
             }),
             content_type='application/json'
         )
@@ -148,15 +148,15 @@ class PackageTest(TestCase):
         response = self.client.post(
             reverse('packages'),
             json.dumps({
-                "metadata": json.dumps({
+                "metadata": {
                     "Name": package_name,
                     "Version": package_version,
                     "ID": package_id
-                }),
-                "data": json.dumps({
+                },
+                "data": {
                     "URL": package_url,
                     "JSProgram": package_js
-                })
+                }
             }),
             content_type='application/json'
         )
@@ -179,15 +179,15 @@ class PackageTest(TestCase):
         response = self.client.post(
             reverse('packages'),
             json.dumps({
-                "metadata": json.dumps({
+                "metadata": {
                     "Name": package_name,
                     "Version": package_version,
                     "ID": package_id
-                }),
-                "data": json.dumps({
+                },
+                "data": {
                     "URL": package_url,
                     "JSProgram": package_js
-                })
+                }
             }),
             content_type='application/json'
         )

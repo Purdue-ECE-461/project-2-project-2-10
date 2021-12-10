@@ -37,8 +37,8 @@ def packages(request):
         if request.method == "POST":
             request_post = json.loads(request.body.decode("utf8"))
 
-            metadata = json.loads(request_post["metadata"])
-            data     = json.loads(request_post["data"])
+            metadata = request_post["metadata"]
+            data     = request_post["data"]
 
             if check_if_package_exists(metadata["Name"], metadata["Version"], metadata["ID"]):
                 return HttpResponse(status=403)
@@ -134,8 +134,8 @@ def package(request, package_id=None):
 
         if request.method == "PUT":
             request_data = json.loads(request.body.decode("utf8"))
-            metadata     = json.loads(request_data["metadata"])
-            data         = json.loads(request_data["data"])
+            metadata     = request_data["metadata"]
+            data         = request_data["data"]
 
             updated_package = Package.objects.get(package_id=package_id)
 
